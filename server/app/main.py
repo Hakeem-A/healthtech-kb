@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
-
+from app.db.session import engine
 
 app = FastAPI()
 
@@ -23,6 +23,16 @@ class User(BaseModel):
     id: int
     name: str
     age: int
+
+
+@app.get("/test-db")
+def test_db():
+    try:
+        connection = engine.connect()
+        connection.close()
+        return {"message": "DB connected successfully"}
+    except Exception as e:
+        return {"error": str(e)}    
 
 @app.get("/users", response_model=List[User])
 def get_users():
