@@ -1,11 +1,16 @@
-from fastapi import FastAPI, HTTPException
+from datetime import timezone, datetime 
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from sqlalchemy.orm import Session
 from typing import List
-from app.db.session import engine
+
+from app.db.session import engine, Base, get_db
+from app.models import User as UserModel
+from pydantic import BaseModel, EmailStr
 
 app = FastAPI()
 
+Base.metadata.create_all(bind=engine)
 
 
 app.add_middleware(
@@ -16,13 +21,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-users_db = []
+class UserCreate(BaseModel):
+    full_name:str
+    email:EmailStr
+    password:str
 
 
-class User(BaseModel):
-    id: int
-    name: str
-    age: int
+class UserResponse(BaseModel):
+    id:int
+    full_name:str
+    email:EmailStr
+    role:str
+    is_active:bool
+    is_verified:bool
+    total_queries:int
+    created_at:str
+    updated_at:str
+
+    class Config:
+        from_attributes = True
 
 
 @app.get("/test-db")
@@ -34,39 +51,57 @@ def test_db():
     except Exception as e:
         return {"error": str(e)}    
 
-@app.get("/users", response_model=List[User])
-def get_users():
-    return users_db
+@app.post("/users", response_model=UserResponse)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
+    existing_user = db.query(UserModel).filter(UserModel.email == user.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
 
-@app.post("/users")
-def create_user(user: User):
-    for u in users_db:
-        if u.id == user.id:
-            return {"error": "User with this ID already exists"}
+    new_user = UserModel(
+        full_name=user.full_name,
+        email=user.email,
+        hashed_password=user.password,
+        role="staff",
+        is_active=True,
+        is_verified=True,
+        total_queries=0,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
 
-    users_db.append(user)
-    return {
-        "message": "User created successfully",
-        "user": user
-    }
+    
+    return new_user
+
+@app.get("/users", response_model=List[UserResponse])
+def get_users(db: Session = Depends(get_db)):
+    users = db.query(UserModel).all()
+    return users
+
  
-@app.get("/users/{user_id}")
-def get_user(user_id: int):
-    for user in users_db:
-        if user.id == user_id:
-            return user
-    raise HTTPException(status_code=404,detail="User not found")
+@app.get("/users/{user_id}", response_model=UserResponse)
+def get_user(user_id: int, db:Session = Depends(get_db)):
+    user = db.query(UserModel).filter(UserModel.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404,detail="User not found")
+
+    return user
 
 @app.delete("/users/{user_id}")
-def delete_user(user_id: int):
-    for user in users_db:
-        if user.id == user_id:
-            users_db.remove(user)
-            return {
-                "message": "User deleted successfully"
-            }
-    raise HTTPException(status_code=404,detail="User not found")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(UserModel).filter(UserModel.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db.delete(user)
+    db.commit()
+
+    return {"message": "User deleted successfully"}
     
 
 
