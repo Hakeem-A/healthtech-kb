@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.db.session import engine, Base, get_db
-from app.models.user import User as UserModel
+from app.models import User as UserModel, Category, Article, Tag, Feedback, Media, SearchLog
 from pydantic import BaseModel, EmailStr
 from app.core.security import hash_password
 from app.routes.auth import router as auth_router
