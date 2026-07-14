@@ -5,13 +5,16 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.db.session import engine, Base, get_db
-from app.models import User as UserModel
+from app.models.user import User as UserModel
 from pydantic import BaseModel, EmailStr
+from app.core.security import hash_password
+from app.routes.auth import router as auth_router
 
 app = FastAPI()
 
 Base.metadata.create_all(bind=engine)
 
+app.include_router(auth_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,8 +38,8 @@ class UserResponse(BaseModel):
     is_active:bool
     is_verified:bool
     total_queries:int
-    created_at:str
-    updated_at:str
+    created_at:datetime
+    updated_at:datetime
 
     class Config:
         from_attributes = True
@@ -61,7 +64,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     new_user = UserModel(
         full_name=user.full_name,
         email=user.email,
-        hashed_password=user.password,
+        hashed_password=hash_password(user.password),
         role="staff",
         is_active=True,
         is_verified=True,
