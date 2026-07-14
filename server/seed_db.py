@@ -25,7 +25,7 @@ def seed_database():
         print("Seeding users...")
         users = [
             User(
-                name="Dr. David Admin",
+                full_name="Dr. David Admin",
                 email="admin@healthtech.com",
                 hashed_password=hash_password("AdminPass123!"),
                 role="admin",
@@ -35,7 +35,7 @@ def seed_database():
                 created_at=datetime.now(timezone.utc) - timedelta(days=30)
             ),
             User(
-                name="Nurse Amina Editor",
+                full_name="Nurse Amina Editor",
                 email="editor@healthtech.com",
                 hashed_password=hash_password("EditorPass123!"),
                 role="editor",
@@ -45,7 +45,7 @@ def seed_database():
                 created_at=datetime.now(timezone.utc) - timedelta(days=25)
             ),
             User(
-                name="Grace Staff",
+                full_name="Grace Staff",
                 email="staff@healthtech.com",
                 hashed_password=hash_password("StaffPass123!"),
                 role="staff",

@@ -1,29 +1,42 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer
 
-from app.api.v1.endpoints import auth
-from app.api.v1.endpoints import users  # (you will move users here)
-
+from app.api.v1.endpoints import auth, users
 from app.db.session import engine, Base
 
-app = FastAPI(title="HealthTech API", version="1.0.0")
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+API_PREFIX = "/api/v1"
 
-# Routers
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
-app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{API_PREFIX}/auth/login")
 
-# CORS
+
+app = FastAPI(
+    title="HealthTech API",
+    version="1.0.0",
+    description="Production-ready HealthTech backend with JWT auth",
+)
+
+
+@app.on_event("startup")
+def on_startup():
+    # ⚠️ Dev only — replace with Alembic in production
+    Base.metadata.create_all(bind=engine)
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten later
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/")
+
+app.include_router(auth.router, prefix=f"{API_PREFIX}/auth", tags=["Auth"])
+app.include_router(users.router, prefix=f"{API_PREFIX}/users", tags=["Users"])
+
+
+@app.get("/", tags=["Root"])
 def root():
-    return {"message": "HealthTech API is running"}
+    return {"message": "HealthTech API is running 🚀"}
