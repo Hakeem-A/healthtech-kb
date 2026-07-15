@@ -1,16 +1,23 @@
+import os
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.pool import StaticPool
 
-DATABASE_URL = "postgresql://kb_user:kb_pass@localhost:5432/kb_db"
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./healthtech.db")
 
+engine_kwargs = {}
+if DATABASE_URL.startswith("sqlite"):
+    engine_kwargs.update(
+        {
+            "connect_args": {"check_same_thread": False},
+            "poolclass": StaticPool,
+        }
+    )
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
