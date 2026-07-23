@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-print("DATABASE_URL seen:", os.getenv("DATABASE_URL"))
+
 
 from fastapi import FastAPI
 
