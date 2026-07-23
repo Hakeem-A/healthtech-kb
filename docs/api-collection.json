@@ -1,0 +1,79 @@
+{
+  "info": {
+    "name": "HealthTech KB API (Widget + Web App)",
+    "description": "Week 1 API contract for Web App and external HMIS chatbot widget.",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer"
+  },
+  "variables": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000/api/v1"
+    }
+  ],
+  "items": [
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "username", "value": "user@example.com" },
+            { "key": "password", "value": "changeme" }
+          ]
+        }
+      },
+      "response": [
+        { "code": 200, "body": { "access_token": "<jwt>", "token_type": "bearer" } }
+      ]
+    },
+    {
+      "name": "Widget - Send Chat",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/chat/",
+        "headers": {
+          "Authorization": "Bearer <jwt>"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": {
+            "session_id": "<widget-session-id>",
+            "message": "What articles cover diabetes?",
+            "widget_source": "hmis_widget"
+          }
+        }
+      },
+      "response": [
+        { "code": 200, "body": { "session_id": "<widget-session-id>", "reply": "<bot reply>" } }
+      ]
+    },
+    {
+      "name": "Widget - Chat History",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/chat/history?session_id=<widget-session-id>",
+        "headers": {
+          "Authorization": "Bearer <jwt>"
+        }
+      },
+      "response": [
+        {
+          "code": 200,
+          "body": {
+            "session_id": "<widget-session-id>",
+            "messages": [
+              { "id": 1, "sender": "hmis_widget", "message": "...", "timestamp": "2026-01-01T00:00:00Z" },
+              { "id": 2, "sender": "bot", "message": "...", "timestamp": "2026-01-01T00:00:01Z" }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
+

@@ -5,11 +5,16 @@
 Supports: - Articles (knowledge base) - Users & roles - Chatbot
 interactions (HMIS widget) - Chat logs/history
 
-``` mermaid
+```mermaid
 erDiagram
     USERS ||--o{ ARTICLES : creates
     USERS ||--o{ CHAT_LOGS : initiates
-    USERS ||--o{ ROLES : assigned
+
+    CHAT_LOGS ||--o{ CHAT_MESSAGES : contains
+
+    USERS ||--o{ CHAT_LOGS : initiates
+
+
 
     ARTICLES ||--o{ ARTICLE_TAGS : has
     ARTICLES ||--o{ CHAT_LOGS : referenced_in
@@ -24,10 +29,8 @@ erDiagram
         datetime created_at
     }
 
-    ROLES {
-        int id
-        string name
-    }
+    // Note: roles are modeled as a string field on USERS in this implementation.
+
 
     ARTICLES {
         int id
