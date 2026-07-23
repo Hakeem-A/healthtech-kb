@@ -6,7 +6,7 @@ print("DATABASE_URL seen:", os.getenv("DATABASE_URL"))
 
 from fastapi import FastAPI
 
-from app.api.v1.endpoints import auth, users, chat
+from app.api.v1.endpoints import auth, users, chat, articles
 from app.core.cors import DualOriginCORSMiddleware, assert_no_origin_overlap
 
 API_PREFIX = "/api/v1"
@@ -24,7 +24,7 @@ app.add_middleware(DualOriginCORSMiddleware)
 app.include_router(auth.router, prefix=f"{API_PREFIX}/auth", tags=["Auth"])
 app.include_router(users.router, prefix=f"{API_PREFIX}/users", tags=["Users"])
 app.include_router(chat.router, prefix=f"{API_PREFIX}/chat", tags=["Chat"])
-
+app.include_router(articles.router, prefix=f"{API_PREFIX}/articles", tags=["Articles"])
 
 @app.get("/", tags=["Root"])
 def root():
