@@ -3,6 +3,12 @@ from datetime import datetime, timezone
 from app.db.session import Base
 
 
+class Role:
+    ADMIN = "admin"
+    EDITOR = "editor"
+    VIEWER = "viewer"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -13,7 +19,7 @@ class User(Base):
 
     hashed_password = Column(String, nullable=False)
 
-    role = Column(String, default="staff")
+    role = Column(String, default=Role.VIEWER)
 
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
