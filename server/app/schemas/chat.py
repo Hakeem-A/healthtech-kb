@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional, Any
 from pydantic import BaseModel, ConfigDict
 
@@ -19,7 +20,7 @@ class ChatMessageResponse(BaseModel):
     id: int
     sender: str
     message: str
-    timestamp: str
+    timestamp: datetime
 
     model_config = ConfigDict(from_attributes=True)
 

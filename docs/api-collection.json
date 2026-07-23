@@ -1,8 +1,8 @@
 {
   "info": {
     "name": "HealthTech KB API (Widget + Web App)",
-    "description": "Week 1 API contract for Web App and external HMIS chatbot widget.",
-    "version": "1.0.0"
+    "description": "API contract for Web App and external HMIS chatbot widget.",
+    "version": "1.1.0"
   },
   "auth": {
     "type": "bearer"
@@ -29,6 +29,205 @@
       },
       "response": [
         { "code": 200, "body": { "access_token": "<jwt>", "token_type": "bearer" } }
+      ]
+    },
+    {
+      "name": "Users - List",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/users/",
+        "headers": {
+          "Authorization": "Bearer <jwt>"
+        }
+      },
+      "response": [
+        {
+          "code": 200,
+          "body": [
+            { "id": 1, "full_name": "...", "email": "...", "role": "admin", "is_active": true, "is_verified": true }
+          ]
+        },
+        { "code": 403, "body": { "detail": "Requires at least 'admin' role. Your role is '<role>'." } }
+      ]
+    },
+    {
+      "name": "Users - Update (role change)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/users/{user_id}",
+        "headers": {
+          "Authorization": "Bearer <jwt>"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": { "role": "editor" }
+        }
+      },
+      "response": [
+        { "code": 200, "body": { "id": 3, "full_name": "...", "email": "...", "role": "editor", "is_active": true, "is_verified": true } },
+        { "code": 403, "body": { "detail": "Only admins can change user roles" } }
+      ]
+    },
+    {
+      "name": "Users - Delete",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/users/{user_id}",
+        "headers": {
+          "Authorization": "Bearer <jwt>"
+        }
+      },
+      "response": [
+        { "code": 204, "body": null },
+        { "code": 403, "body": { "detail": "Requires at least 'admin' role. Your role is '<role>'." } }
+      ]
+    },
+    {
+      "name": "Articles - Create",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/articles/",
+        "headers": {
+          "Authorization": "Bearer <jwt>"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": {
+            "title": "How to Reset a Patient Record",
+            "content": "...",
+            "category_id": 1,
+            "status": "draft",
+            "tag_ids": [1, 2]
+          }
+        }
+      },
+      "response": [
+        {
+          "code": 201,
+          "body": {
+            "id": 10,
+            "title": "How to Reset a Patient Record",
+            "slug": "how-to-reset-a-patient-record",
+            "content": "...",
+            "status": "draft",
+            "category_id": 1,
+            "author_id": 2,
+            "views": 0,
+            "tags": [],
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z"
+          }
+        },
+        { "code": 403, "body": { "detail": "Requires at least 'editor' role. Your role is 'viewer'." } }
+      ]
+    },
+    {
+      "name": "Articles - List",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/articles/",
+        "headers": {
+          "Authorization": "Bearer <jwt>"
+        }
+      },
+      "response": [
+        {
+          "code": 200,
+          "body": [
+            {
+              "id": 1,
+              "title": "...",
+              "slug": "...",
+              "status": "published",
+              "category_id": 1,
+              "author_id": 1,
+              "views": 124,
+              "created_at": "2026-01-01T00:00:00Z",
+              "updated_at": "2026-01-01T00:00:00Z"
+            }
+          ]
+        }
+      ],
+      "notes": "Viewers only receive articles with status=published. Editors and admins receive all statuses."
+    },
+    {
+      "name": "Articles - Get Detail",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/articles/{article_id}",
+        "headers": {
+          "Authorization": "Bearer <jwt>"
+        }
+      },
+      "response": [
+        {
+          "code": 200,
+          "body": {
+            "id": 1,
+            "title": "...",
+            "slug": "...",
+            "content": "...",
+            "status": "published",
+            "category_id": 1,
+            "author_id": 1,
+            "views": 124,
+            "tags": [{ "id": 1, "name": "patient", "slug": "patient" }],
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z"
+          }
+        },
+        { "code": 403, "body": { "detail": "You do not have access to this article" } },
+        { "code": 404, "body": { "detail": "Article not found" } }
+      ]
+    },
+    {
+      "name": "Articles - Update",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/articles/{article_id}",
+        "headers": {
+          "Authorization": "Bearer <jwt>"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": { "status": "published" }
+        }
+      },
+      "response": [
+        {
+          "code": 200,
+          "body": {
+            "id": 1,
+            "title": "...",
+            "slug": "...",
+            "content": "...",
+            "status": "published",
+            "category_id": 1,
+            "author_id": 1,
+            "views": 124,
+            "tags": [],
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z"
+          }
+        },
+        { "code": 403, "body": { "detail": "Only admins can publish or archive articles" } },
+        { "code": 404, "body": { "detail": "Article not found" } }
+      ],
+      "notes": "Editors and admins can edit title/content/category/tags. Only admins can change status to published or archived."
+    },
+    {
+      "name": "Articles - Delete",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/articles/{article_id}",
+        "headers": {
+          "Authorization": "Bearer <jwt>"
+        }
+      },
+      "response": [
+        { "code": 204, "body": null },
+        { "code": 403, "body": { "detail": "Requires at least 'admin' role. Your role is '<role>'." } },
+        { "code": 404, "body": { "detail": "Article not found" } }
       ]
     },
     {
@@ -73,7 +272,16 @@
           }
         }
       ]
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8000/health"
+      },
+      "response": [
+        { "code": 200, "body": { "status": "ok" } }
+      ]
     }
   ]
 }
-
