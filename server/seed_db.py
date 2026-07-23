@@ -1,12 +1,14 @@
 import sys
 import os
 from datetime import datetime, timezone, timedelta
+from dotenv import load_dotenv
+
+load_dotenv()  # before importing app.db.session, which reads DATABASE_URL at import time
 
 # Add server directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from sqlalchemy import text
-from app.db.session import SessionLocal, Base, engine
+from app.db.session import SessionLocal
 from app.models import User, Category, Article, Tag, Feedback, Media, SearchLog
 from app.core.security import hash_password
 
@@ -15,13 +17,12 @@ def seed_database():
     db = SessionLocal()
 
     try:
-        # 1. Clean and sync database schema by recreating tables
-        print("Recreating database tables to sync schema...")
-        Base.metadata.drop_all(bind=engine)
-        Base.metadata.create_all(bind=engine)
-        db.commit()
+        # Schema is managed by Alembic — run `alembic upgrade head` before seeding.
+        # (No more Base.metadata.drop_all()/create_all() here — that was the same
+        # startup-schema-recreation pattern Sprint 1 removed from main.py, and it
+        # would wipe Alembic's own migration history every time this script runs.)
 
-        # 2. Seed Users
+        # 1. Seed Users
         print("Seeding users...")
         users = [
             User(
@@ -57,13 +58,13 @@ def seed_database():
         ]
         db.add_all(users)
         db.commit()
-        
+
         # Refresh users to get IDs
         admin_user = db.query(User).filter(User.role == "admin").first()
         editor_user = db.query(User).filter(User.role == "editor").first()
         viewer_user = db.query(User).filter(User.role == "viewer").first()
 
-        # 3. Seed Categories
+        # 2. Seed Categories
         print("Seeding categories...")
         # Top-level Categories
         getting_started = Category(
@@ -118,7 +119,7 @@ def seed_database():
         db.add_all([login_access, lab_workflows, pharmacy_sop])
         db.commit()
 
-        # 4. Seed Tags
+        # 3. Seed Tags
         print("Seeding tags...")
         tags = [
             Tag(name="onboarding", slug="onboarding"),
@@ -137,7 +138,7 @@ def seed_database():
         error_tag = db.query(Tag).filter(Tag.slug == "error").first()
         lab_tag = db.query(Tag).filter(Tag.slug == "lab").first()
 
-        # 5. Seed Articles
+        # 4. Seed Articles
         print("Seeding articles...")
         articles = [
             Article(
@@ -264,7 +265,7 @@ This document is under review and is not yet approved for clinical use.
                 created_at=datetime.now(timezone.utc) - timedelta(days=1)
             )
         ]
-        
+
         # Link tags many-to-many
         articles[0].tags_rel.append(patient_tag)
         articles[0].tags_rel.append(onboarding_tag)
@@ -282,7 +283,7 @@ This document is under review and is not yet approved for clinical use.
         article_reset = next(a for a in db_articles if a.slug == "how-to-reset-patient-record")
         article_pharmacy = next(a for a in db_articles if a.slug == "pharmacy-dispensing-sop-high-risk")
 
-        # 6. Seed Feedback
+        # 5. Seed Feedback
         print("Seeding feedback...")
         feedbacks = [
             Feedback(
@@ -303,7 +304,7 @@ This document is under review and is not yet approved for clinical use.
         db.add_all(feedbacks)
         db.commit()
 
-        # 7. Seed Search Logs
+        # 6. Seed Search Logs
         print("Seeding search logs...")
         search_logs = [
             SearchLog(query="reset patient record", results_count=1, user_id=viewer_user.id, created_at=datetime.now(timezone.utc) - timedelta(hours=5)),

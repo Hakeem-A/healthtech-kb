@@ -12,7 +12,7 @@ if DATABASE_URL.startswith("sqlite"):
         {
             "connect_args": {"check_same_thread": False},
             "poolclass": StaticPool,
-        }
+        } 
     )
 
 engine = create_engine(DATABASE_URL, **engine_kwargs)
