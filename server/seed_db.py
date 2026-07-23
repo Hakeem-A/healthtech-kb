@@ -45,10 +45,10 @@ def seed_database():
                 created_at=datetime.now(timezone.utc) - timedelta(days=25)
             ),
             User(
-                full_name="Grace Staff",
-                email="staff@healthtech.com",
-                hashed_password=hash_password("StaffPass123!"),
-                role="staff",
+                full_name="Grace Viewer",
+                email="viewer@healthtech.com",
+                hashed_password=hash_password("ViewerPass123!"),
+                role="viewer",
                 is_active=True,
                 is_verified=True,
                 total_queries=42,
@@ -61,7 +61,7 @@ def seed_database():
         # Refresh users to get IDs
         admin_user = db.query(User).filter(User.role == "admin").first()
         editor_user = db.query(User).filter(User.role == "editor").first()
-        staff_user = db.query(User).filter(User.role == "staff").first()
+        viewer_user = db.query(User).filter(User.role == "viewer").first()
 
         # 3. Seed Categories
         print("Seeding categories...")
@@ -287,14 +287,14 @@ This document is under review and is not yet approved for clinical use.
         feedbacks = [
             Feedback(
                 article_id=article_reset.id,
-                user_id=staff_user.id,
+                user_id=viewer_user.id,
                 rating=5,
                 comment="Extremely clear and easy to follow! Saved a lot of time on my shift.",
                 created_at=datetime.now(timezone.utc) - timedelta(days=2)
             ),
             Feedback(
                 article_id=article_pharmacy.id,
-                user_id=staff_user.id,
+                user_id=viewer_user.id,
                 rating=4,
                 comment="Very helpful guide. It would be great to add screenshots of the barcode popup.",
                 created_at=datetime.now(timezone.utc) - timedelta(days=1)
@@ -306,10 +306,10 @@ This document is under review and is not yet approved for clinical use.
         # 7. Seed Search Logs
         print("Seeding search logs...")
         search_logs = [
-            SearchLog(query="reset patient record", results_count=1, user_id=staff_user.id, created_at=datetime.now(timezone.utc) - timedelta(hours=5)),
-            SearchLog(query="pharmacy dispensing", results_count=1, user_id=staff_user.id, created_at=datetime.now(timezone.utc) - timedelta(hours=4)),
-            SearchLog(query="database error 505", results_count=1, user_id=staff_user.id, created_at=datetime.now(timezone.utc) - timedelta(hours=3)),
-            SearchLog(query="invalid laboratory query", results_count=0, user_id=staff_user.id, created_at=datetime.now(timezone.utc) - timedelta(hours=2))
+            SearchLog(query="reset patient record", results_count=1, user_id=viewer_user.id, created_at=datetime.now(timezone.utc) - timedelta(hours=5)),
+            SearchLog(query="pharmacy dispensing", results_count=1, user_id=viewer_user.id, created_at=datetime.now(timezone.utc) - timedelta(hours=4)),
+            SearchLog(query="database error 505", results_count=1, user_id=viewer_user.id, created_at=datetime.now(timezone.utc) - timedelta(hours=3)),
+            SearchLog(query="invalid laboratory query", results_count=0, user_id=viewer_user.id, created_at=datetime.now(timezone.utc) - timedelta(hours=2))
         ]
         db.add_all(search_logs)
         db.commit()
