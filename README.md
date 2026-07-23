@@ -15,17 +15,21 @@ The project is split into the following main directories:
 ## 💻 Tech Stack
 
 ### Frontend
+
 - **Framework**: React 19
 - **Build Tool**: Vite 8
 - **Styling**: Tailwind CSS v4
 - **Linting**: ESLint
 
 ### Backend
+
 - **Framework**: FastAPI
 - **Web Server**: Uvicorn
 - **ORM**: SQLAlchemy
+- **Database**: PostgreSQL, with schema managed via **Alembic** migrations
 - **Database Driver**: psycopg2-binary
-- **Authentication & Security**: Passlib (Bcrypt) & Python-Jose
+- **Authentication & Security**: Passlib (Bcrypt) & Python-Jose, JWT with embedded role claim
+- **Authorization**: Role-based access control (admin / editor / viewer) with hierarchy-based permission checks
 - **Data Validation**: Pydantic v2
 
 ---
@@ -33,95 +37,137 @@ The project is split into the following main directories:
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (v18+) and npm
 - Python (3.10+)
-- PostgreSQL (configured database and user)
+- PostgreSQL (running locally or accessible remotely)
 
 ---
 
 ### Backend Setup
 
-The backend has two main Entrypoints:
-1. **Mock Backend**: Located at [server/main.py](file:///home/abdi/Desktop/healthtech-kb/server/main.py), which uses a mock in-memory user list database.
-2. **Production Backend**: Located at [server/app/main.py](file:///home/abdi/Desktop/healthtech-kb/server/app/main.py), which implements user authentication routes and hooks into a PostgreSQL database defined in [server/app/db/session.py](file:///home/abdi/Desktop/healthtech-kb/server/app/db/session.py).
+The backend entrypoint is [server/app/main.py](file:///home/abdi/Desktop/healthtech-kb/server/app/main.py), which implements JWT authentication, RBAC, and hooks into a PostgreSQL database defined in [server/app/db/session.py](file:///home/abdi/Desktop/healthtech-kb/server/app/db/session.py).
 
 #### Step-by-Step Installation:
 
 1. **Navigate to the server directory**:
-   ```bash
+
+```bash
    cd server
-   ```
+```
 
 2. **Set up a Virtual Environment**:
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   ```
+
+```bash
+   python3 -m venv venv
+   source venv/bin/activate
+```
 
 3. **Install Dependencies**:
-   ```bash
+
+```bash
    pip install -r requirements.txt
-   ```
+```
 
 4. **Database Configuration**:
-   Make sure you have a PostgreSQL database running and configured. You can customize the connection URL in [server/app/db/session.py](file:///home/abdi/Desktop/healthtech-kb/server/app/db/session.py):
-   ```python
-   DATABASE_URL = "postgresql://kb_user:kb_pass@localhost:5432/kb_db"
-   ```
+   Create a PostgreSQL database and user, then set the connection string in a `.env` file in `server/`:
 
-5. **Run the API Server**:
-   To run the production-ready PostgreSQL backed server:
-   ```bash
+```bash
+   DATABASE_URL=postgresql://kb_user:kb_pass@localhost:5432/kb_db
+```
+
+(No trailing comments on the same line as the value — `python-dotenv` only treats `#` as a comment starter when preceded by whitespace.)
+
+5. **Run Database Migrations**:
+   Schema is managed entirely through Alembic — there is no auto-create-on-startup behavior. Apply the latest schema before first run:
+
+```bash
+   alembic upgrade head
+```
+
+6. **Seed the Database** (optional, for local dev/demo data):
+
+```bash
+   python seed_db.py
+```
+
+This creates three test accounts (`admin@healthtech.com` / `editor@healthtech.com` / `viewer@healthtech.com`), sample categories, tags, and articles.
+
+7. **Run the API Server**:
+
+```bash
    uvicorn app.main:app --reload --port 8000
-   ```
-   Or to run the simple mock server:
-   ```bash
-   uvicorn main:app --reload --port 8000
-   ```
+```
 
-6. **Interactive Documentation**:
+8. **Interactive Documentation**:
    Once started, visit:
    - Swagger UI: `http://localhost:8000/docs`
    - ReDoc: `http://localhost:8000/redoc`
+   - Health check: `http://localhost:8000/health`
 
 ---
 
 ### Frontend Setup
 
 1. **Navigate to the client directory**:
-   ```bash
+
+```bash
    cd client
-   ```
+```
 
 2. **Install Dependencies**:
-   ```bash
+
+```bash
    npm install
-   ```
+```
 
 3. **Start the Development Server**:
-   ```bash
+
+```bash
    npm run dev
-   ```
+```
 
 4. **Build for Production**:
-   ```bash
+
+```bash
    npm run build
-   ```
+```
 
 ---
 
 ## 🛠 Database Models & Endpoints
 
 ### Models
-- **[User](file:///home/abdi/Desktop/healthtech-kb/server/app/models/user.py)**: Tracks user accounts, details (`full_name`, `email`, `role`), usage stats (`total_queries`), and verification status (`is_verified`).
+
+- **[User](file:///home/abdi/Desktop/healthtech-kb/server/app/models/user.py)**: Tracks user accounts (`full_name`, `email`, `role`), usage stats (`total_queries`), and verification status (`is_verified`). Roles: `admin`, `editor`, `viewer`.
+- **[Article](file:///home/abdi/Desktop/healthtech-kb/server/app/models/article.py)**: Knowledge base content with `status` (`draft`, `under_review`, `published`, `archived`), category, author, and many-to-many tags.
+- **[Category](file:///home/abdi/Desktop/healthtech-kb/server/app/models/category.py)**: Hierarchical (self-referencing) content categories.
+- **[Tag](file:///home/abdi/Desktop/healthtech-kb/server/app/models/tag.py)**: Many-to-many labels for articles.
+- **[AuditLog](file:///home/abdi/Desktop/healthtech-kb/server/app/models/audit_log.py)**: Records admin-sensitive actions (role changes, user/article deletes, publish/archive) with actor, action, target, and timestamp.
+- **[ChatLog / ChatMessage](file:///home/abdi/Desktop/healthtech-kb/server/app/models/chat.py)**: Persisted chatbot session history.
 
 ### API Endpoints
-- **Authentication**:
-  - `POST /login`: Standard JWT login (handled by [server/app/routes/auth.py](file:///home/abdi/Desktop/healthtech-kb/server/app/routes/auth.py)).
-- **User Management**:
-  - `POST /users`: Register a new user.
-  - `GET /users`: Retrieve all registered users.
-  - `GET /users/{user_id}`: Retrieve details for a specific user.
-  - `DELETE /users/{user_id}`: Remove a user.
+
+All routes are prefixed with `/api/v1`.
+
+- **Authentication** (`/auth`):
+  - `POST /auth/login`: JWT login (form-encoded `username`/`password`); returns an access token with an embedded role claim.
+
+- **User Management** (`/users`) — admin-only for list/update/delete:
+  - `GET /users/`: List all users.
+  - `PUT /users/{user_id}`: Update user details, including role (logged to the audit trail).
+  - `DELETE /users/{user_id}`: Remove a user (logged to the audit trail).
+
+- **Articles** (`/articles`) — role-gated (editor+ to create/edit, admin-only to publish/archive/delete):
+  - `POST /articles/`: Create a new article (default status `draft`).
+  - `GET /articles/`: List articles — viewers see published only; editors/admins see all statuses.
+  - `GET /articles/{article_id}`: Retrieve a single article (same visibility rule as list).
+  - `PUT /articles/{article_id}`: Update title/content/category/tags/status. Publishing or archiving requires admin.
+  - `DELETE /articles/{article_id}`: Delete an article (admin-only, logged to the audit trail).
+
+- **Chat** (`/chat`):
+  - `POST /chat/`: Submit a chat message.
+  - `GET /chat/history`: Retrieve chat history for the current session.
+
 - **Utility**:
-  - `GET /test-db`: Performs connection health check on the database.
+  - `GET /health`: Basic liveness check, returns `{"status": "ok"}`.
