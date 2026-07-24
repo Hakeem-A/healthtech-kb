@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from app.api.deps import get_db, get_current_user, require_widget_api_key
 from app.models.chat import ChatLog, ChatMessage
 from app.models.user import User as UserModel
+from app.services.kb_search import compose_reply
 
 from app.schemas.chat import (
     ChatHistoryResponse,
@@ -97,8 +98,7 @@ def send_chat_message(
     db.add(user_msg)
     db.commit()
 
-    # Placeholder reply (replace with real KB-search-based response — Sprint 3)
-    reply_text = f"ACK: {payload.message}"
+    reply_text = compose_reply(db, payload.message)
 
     bot_msg = ChatMessage(
         chat_log_id=log.id,
