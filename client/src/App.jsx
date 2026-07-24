@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
+import ArticleList from './pages/ArticleList';
+import ArticleDetail from './pages/ArticleDetail';
 
 function App() {
   return (
@@ -13,7 +15,15 @@ function App() {
             path="/articles"
             element={
               <ProtectedRoute>
-                <div className="p-8">Articles list goes here — next step</div>
+                <ArticleList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/articles/:id"
+            element={
+              <ProtectedRoute>
+                <ArticleDetail />
               </ProtectedRoute>
             }
           />
