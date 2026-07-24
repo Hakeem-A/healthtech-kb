@@ -8,6 +8,7 @@ import ArticleDetail from './pages/ArticleDetail';
 import ArticleEditor from './pages/ArticleEditor';
 import UserList from './pages/UserList';
 import AddUser from './pages/AddUser';
+import WidgetPage from './pages/WidgetPage';
 
 function AppRoutes() {
   const { isAuthenticated } = useAuth();
@@ -15,6 +16,7 @@ function AppRoutes() {
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/widget" element={<WidgetPage />} />
         <Route path="/articles" element={<ProtectedRoute><ArticleList /></ProtectedRoute>} />
         <Route path="/articles/new" element={<ProtectedRoute requireRole="editor"><ArticleEditor /></ProtectedRoute>} />
         <Route path="/articles/:id/edit" element={<ProtectedRoute requireRole="editor"><ArticleEditor /></ProtectedRoute>} />
