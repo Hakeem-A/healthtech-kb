@@ -11,6 +11,13 @@ NOTE: WIDGET_PATH_PREFIX is hardcoded below. If your chat router is
 mounted at a different prefix than "/api/v1/chat" in main.py, update this
 constant to match -- it must exactly match the prefix used in
 `app.include_router(chat_endpoints.router, prefix=...)`.
+
+NOTE: /api/v1/chat is called by BOTH the widget (X-API-Key, no
+credentials) and the dashboard (JWT Authorization header, since
+get_chat_caller falls back to JWT when no API key is present). The
+widget_cors policy below must therefore accept both origin sets and
+both header types, even though it's still a "no credentials" policy
+overall (neither caller uses cookie-based credentials mode).
 """
 from starlette.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp, Receive, Scope, Send
@@ -23,10 +30,12 @@ WIDGET_PATH_PREFIX = "/api/v1/chat"
 class DualOriginCORSMiddleware:
     """
     Pure ASGI middleware. Requests under WIDGET_PATH_PREFIX get the widget
-    CORS policy (no credentials, X-API-Key allowed); everything else gets
-    the dashboard policy (credentials allowed, Authorization header
-    allowed). Each policy is a real Starlette CORSMiddleware instance, so
-    standard preflight/Vary-header handling is reused, not reimplemented.
+    CORS policy (no credentials, X-API-Key or Authorization allowed, both
+    widget and dashboard origins allowed since both call this path);
+    everything else gets the dashboard policy (credentials allowed,
+    Authorization header allowed, dashboard origins only). Each policy is
+    a real Starlette CORSMiddleware instance, so standard preflight/Vary-
+    header handling is reused, not reimplemented.
     """
 
     def __init__(self, app: ASGIApp) -> None:
@@ -39,10 +48,13 @@ class DualOriginCORSMiddleware:
         )
         self.widget_cors = CORSMiddleware(
             app=app,
-            allow_origins=settings.widget_origins_list,
+            # Both the widget's own origins AND the dashboard's origins
+            # can legitimately call /api/v1/chat — the widget via
+            # X-API-Key, the dashboard via JWT.
+            allow_origins=settings.widget_origins_list + settings.dashboard_origins_list,
             allow_credentials=False,
             allow_methods=["GET", "POST", "OPTIONS"],
-            allow_headers=["X-API-Key", "Content-Type"],
+            allow_headers=["X-API-Key", "Authorization", "Content-Type"],
         )
         self.app = app
 
@@ -64,6 +76,13 @@ def assert_no_origin_overlap() -> None:
     accidentally also listed in DASHBOARD_ORIGINS (or vice versa) would
     silently grant the wrong trust level -- better a boot-time crash than
     a security bug found later.
+
+    NOTE: this check no longer implies the two origin lists never appear
+    together on the same CORS policy -- widget_cors intentionally allows
+    both lists on the /api/v1/chat path (see class docstring above). This
+    function only guards against a *single origin string* being listed in
+    both DASHBOARD_ORIGINS and WIDGET_ORIGINS, which would be a
+    misconfiguration either way.
     """
     overlap = set(settings.dashboard_origins_list) & set(settings.widget_origins_list)
     if overlap:
