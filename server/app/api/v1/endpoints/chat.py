@@ -1,10 +1,11 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, Request
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 
 from app.api.deps import get_db, get_current_user, require_widget_api_key
+from app.core.limiter import limiter
 from app.models.chat import ChatLog, ChatMessage
 from app.models.user import User as UserModel
 from app.services.kb_search import compose_reply
@@ -81,7 +82,9 @@ def _find_or_create_log(db: Session, caller: ChatCaller, session_id: str, reques
 
 
 @router.post("/", response_model=ChatSendResponse)
+@limiter.limit("20/minute")
 def send_chat_message(
+    request: Request,
     payload: ChatSendRequest,
     db: Session = Depends(get_db),
     caller: ChatCaller = Depends(get_chat_caller),
