@@ -81,8 +81,21 @@ class ArticleResponse(BaseModel):
         # Article has both a legacy `tags` string column and the real
         # `tags_rel` many-to-many relationship. Read from `tags_rel` so
         # the API's `tags` field reflects actual linked Tag rows, not
-        # the (currently unused) string column, which is `None` by
-        # default and fails list validation.
+        # the (currently unused) string column, which is a plain string
+        # (e.g. "pharmacy") and fails list validation.
         if hasattr(obj, "tags_rel"):
             obj.tags = obj.tags_rel
         return obj
+
+
+class ArticleSearchResult(BaseModel):
+    id: int
+    title: str
+    slug: str
+    status: str
+    category_id: int
+    views: int
+    snippet: str
+
+    class Config:
+        from_attributes = True
