@@ -6,8 +6,12 @@ load_dotenv()
 
 from fastapi import FastAPI
 
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
 from app.api.v1.endpoints import auth, users, chat, articles, categories, tags
 from app.core.cors import DualOriginCORSMiddleware, assert_no_origin_overlap
+from app.core.limiter import limiter
 
 API_PREFIX = "/api/v1"
 
@@ -19,6 +23,8 @@ app = FastAPI(
     description="Production-ready HealthTech backend with JWT auth",
 )
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(DualOriginCORSMiddleware)
 
 app.include_router(auth.router, prefix=f"{API_PREFIX}/auth", tags=["Auth"])

@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { listUsers, deleteUser } from '../api/users';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
+import Layout from '../components/Layout';
+import Icon from '../components/icons';
 
 const ROLE_STYLES = {
-  admin: 'bg-purple-100 text-purple-800',
-  editor: 'bg-blue-100 text-blue-800',
-  viewer: 'bg-slate-100 text-slate-700',
+  admin: 'bg-purple-100 text-purple-800 ring-1 ring-purple-200',
+  editor: 'bg-amber-100 text-amber-800 ring-1 ring-amber-200',
+  viewer: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
 };
 
 export default function UserList() {
@@ -16,15 +18,23 @@ export default function UserList() {
   const [busyId, setBusyId] = useState(null);
   const { user: currentUser } = useAuth();
 
-  function load() {
-    setLoading(true);
-    listUsers()
-      .then(setUsers)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }
-
-  useEffect(load, []);
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const data = await listUsers();
+        if (!ignore) setUsers(data);
+      } catch (err) {
+        if (!ignore) setError(err.message);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    })();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   async function handleDelete(u) {
     if (u.email === currentUser.email) {
@@ -44,60 +54,61 @@ export default function UserList() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Link to="/articles" className="text-sm text-blue-600">
-            ← Articles
+    <Layout>
+      <div className="px-10 py-10">
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            <Link to="/articles" className="text-base text-blue-600 font-medium mb-2 inline-block hover:text-blue-800">
+              ← Articles
+            </Link>
+            <h1 className="text-3xl font-bold text-slate-900">Users</h1>
+          </div>
+          <Link
+            to="/users/new"
+            className="flex items-center gap-1.5 bg-blue-600 text-white text-base font-medium rounded-lg px-5 py-3 hover:bg-blue-700 transition shadow-sm"
+          >
+            <Icon name="plus" className="w-4 h-4" />
+            Add User
           </Link>
-          <h1 className="text-xl font-semibold text-slate-800">Users</h1>
         </div>
-        <Link
-          to="/users/new"
-          className="bg-blue-600 text-white text-sm rounded px-4 py-2 hover:bg-blue-700"
-        >
-          Add User
-        </Link>
-      </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-8">
-        {loading && <p className="text-slate-500">Loading…</p>}
+        {loading && <p className="text-lg text-slate-500">Loading…</p>}
         {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+          <div className="text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
             {error}
           </div>
         )}
 
         {!loading && !error && (
-          <ul className="space-y-3">
+          <div className="grid grid-cols-2 gap-4">
             {users.map((u) => (
-              <li
+              <div
                 key={u.id}
-                className="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center"
+                className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex justify-between items-center"
               >
                 <div>
-                  <p className="font-medium text-slate-800">{u.full_name}</p>
-                  <p className="text-sm text-slate-500">{u.email}</p>
+                  <p className="font-semibold text-lg text-slate-900">{u.full_name}</p>
+                  <p className="text-base text-slate-500">{u.email}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span
-                    className={`text-xs font-medium px-2 py-0.5 rounded uppercase ${ROLE_STYLES[u.role] || 'bg-slate-100 text-slate-700'}`}
+                    className={`text-sm font-semibold px-3 py-1 rounded-full uppercase ${ROLE_STYLES[u.role] || 'bg-slate-100 text-slate-700'}`}
                   >
                     {u.role}
                   </span>
                   <button
                     onClick={() => handleDelete(u)}
                     disabled={busyId === u.id}
-                    className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
+                    className="text-base font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
                   >
                     Delete
                   </button>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 }

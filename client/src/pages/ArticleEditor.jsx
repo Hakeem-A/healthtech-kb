@@ -7,7 +7,8 @@ import {
   listCategories,
   listTags,
 } from '../api/articles';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
+import Layout from '../components/Layout';
 
 export default function ArticleEditor() {
   const { id } = useParams();
@@ -88,36 +89,38 @@ export default function ArticleEditor() {
   }
 
   if (loading) {
-    return <div className="p-8 text-slate-500">Loading…</div>;
+    return (
+      <Layout>
+        <div className="p-10 text-lg text-slate-500">Loading…</div>
+      </Layout>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 py-4">
+    <Layout>
+      <div className="max-w-3xl mx-auto px-8 py-10">
         <Link
           to={isEditMode ? `/articles/${id}` : '/articles'}
-          className="text-sm text-blue-600"
+          className="text-base text-blue-600 font-medium mb-6 inline-block hover:text-blue-800"
         >
           ← Cancel
         </Link>
-      </header>
 
-      <main className="max-w-2xl mx-auto px-6 py-8">
-        <h1 className="text-xl font-semibold text-slate-800 mb-6">
+        <h1 className="text-3xl font-bold text-slate-900 mb-8">
           {isEditMode ? 'Edit Article' : 'New Article'}
         </h1>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white border border-slate-200 rounded-lg p-6"
+          className="bg-white border border-slate-200 rounded-xl shadow-sm p-8"
         >
           {error && (
-            <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
+            <div className="mb-5 text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
               {error}
             </div>
           )}
 
-          <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="title" className="block text-base font-medium text-slate-700 mb-2">
             Title
           </label>
           <input
@@ -127,10 +130,10 @@ export default function ArticleEditor() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="w-full border border-slate-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <label htmlFor="category" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="category" className="block text-base font-medium text-slate-700 mb-2">
             Category
           </label>
           <select
@@ -139,7 +142,7 @@ export default function ArticleEditor() {
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
             required
-            className="w-full border border-slate-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="" disabled>
               Select a category…
@@ -151,32 +154,32 @@ export default function ArticleEditor() {
             ))}
           </select>
 
-          <fieldset className="mb-4">
-  <legend className="block text-sm font-medium text-slate-700 mb-1">
-    Tags
-  </legend>
-  <div className="flex flex-wrap gap-2">
-    {tags.map((tag) => {
-      const selected = selectedTagIds.includes(tag.id);
-      return (
-        <button
-          key={tag.id}
-          type="button"
-          onClick={() => toggleTag(tag.id)}
-          className={`text-xs rounded px-2 py-1 border transition ${
-            selected
-              ? 'bg-blue-600 text-white border-blue-600'
-              : 'bg-white text-slate-600 border-slate-300 hover:border-blue-300'
-          }`}
-        >
-          {tag.name}
-        </button>
-      );
-    })}
-  </div>
-</fieldset>
+          <fieldset className="mb-5 border-0 p-0 m-0">
+            <legend className="block text-base font-medium text-slate-700 mb-2">
+              Tags
+            </legend>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => {
+                const selected = selectedTagIds.includes(tag.id);
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => toggleTag(tag.id)}
+                    className={`text-sm rounded-full px-3 py-1.5 border transition ${
+                      selected
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-slate-600 border-slate-300 hover:border-blue-300'
+                    }`}
+                  >
+                    {tag.name}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
 
-          <label htmlFor="content" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="content" className="block text-base font-medium text-slate-700 mb-2">
             Content
           </label>
           <textarea
@@ -185,11 +188,11 @@ export default function ArticleEditor() {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             required
-            rows={12}
-            className="w-full border border-slate-300 rounded px-3 py-2 mb-4 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows={14}
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-5 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <label htmlFor="status" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="status" className="block text-base font-medium text-slate-700 mb-2">
             Status
           </label>
           <select
@@ -197,7 +200,7 @@ export default function ArticleEditor() {
             name="status"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full border border-slate-300 rounded px-3 py-2 mb-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="draft">Draft</option>
             <option value="under_review">Under review</option>
@@ -209,7 +212,7 @@ export default function ArticleEditor() {
             </option>
           </select>
           {!canSetPublishedOrArchived && (
-            <p className="text-xs text-slate-400 mb-4">
+            <p className="text-sm text-slate-400 mb-5">
               Only admins can publish or archive articles.
             </p>
           )}
@@ -217,12 +220,12 @@ export default function ArticleEditor() {
           <button
             type="submit"
             disabled={saving}
-            className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50 mt-4"
+            className="w-full bg-blue-600 text-white text-lg font-medium rounded-lg py-3.5 hover:bg-blue-700 transition disabled:opacity-50 mt-4"
           >
             {saving ? 'Saving…' : isEditMode ? 'Save changes' : 'Create article'}
           </button>
         </form>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 }

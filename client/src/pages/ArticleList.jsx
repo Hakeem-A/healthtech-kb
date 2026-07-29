@@ -1,25 +1,33 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { listArticles } from '../api/articles';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
+import Layout from '../components/Layout';
+import Icon from '../components/icons';
 
 const STATUS_STYLES = {
-  draft: 'bg-slate-100 text-slate-700',
-  under_review: 'bg-amber-100 text-amber-800',
-  published: 'bg-green-100 text-green-800',
-  archived: 'bg-red-100 text-red-700',
+  draft: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
+  under_review: 'bg-amber-100 text-amber-700 ring-1 ring-amber-200',
+  published: 'bg-green-100 text-green-700 ring-1 ring-green-200',
+  archived: 'bg-red-100 text-red-700 ring-1 ring-red-200',
 };
+
+function StatCard({ label, value }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl px-6 py-5 shadow-sm">
+      <p className="text-base text-slate-500 mb-1">{label}</p>
+      <p className="text-4xl font-bold text-slate-900">{value}</p>
+    </div>
+  );
+}
 
 export default function ArticleList() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const { user, logout } = useAuth();
-
-  // Safe role check
-  const canCreate =
-    user && (user.role === 'editor' || user.role === 'admin');
+  const { user } = useAuth();
+  const canCreate = user && user.role === 'editor';
 
   useEffect(() => {
     listArticles()
@@ -31,109 +39,81 @@ export default function ArticleList() {
       .finally(() => setLoading(false));
   }, []);
 
+  const published = articles.filter((a) => a.status === 'published').length;
+  const drafts = articles.filter((a) => a.status === 'draft').length;
+  const inReview = articles.filter((a) => a.status === 'under_review').length;
+  const totalViews = articles.reduce((sum, a) => sum + (a.views || 0), 0);
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* ================= HEADER ================= */}
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-semibold text-slate-800">
-          HealthTech KB
-        </h1>
-
-        <div className="flex items-center gap-6">
-          {/* USER INFO */}
-          <span className="text-sm text-slate-500">
-            {user?.email}
-            <span className="ml-1 uppercase text-xs font-medium text-slate-400">
-              ({user?.role})
-            </span>
-          </span>
-        
-          {/* ADMIN ONLY */}
-          {user?.role === 'admin' && (
-            <Link
-              to="/users"
-              className="text-sm font-medium text-blue-600 hover:text-blue-800"
-            >
-              Manage Users
-            </Link>
-          )}
-
-          {/* LOGOUT */}
-          <button
-            onClick={logout}
-            className="text-sm font-medium text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 rounded px-3 py-1.5 transition-colors"
-          >
-            Log out
-          </button>
-        </div>
-      </header>
-
-      {/* ================= MAIN ================= */}
-      <main className="max-w-3xl mx-auto px-6 py-8">
-        {/* HEADER ROW */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-medium text-slate-800">
-            Articles
-          </h2>
+    <Layout>
+      <div className="px-10 py-10">
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 mb-1">Articles</h1>
+            <p className="text-lg text-slate-500">Browse and manage knowledge base content</p>
+          </div>
 
           {canCreate && (
             <Link
               to="/articles/new"
-              className="bg-blue-600 text-white text-sm rounded px-4 py-2 hover:bg-blue-700 transition"
+              className="flex items-center gap-1.5 bg-blue-600 text-white text-base font-medium rounded-lg px-5 py-3 hover:bg-blue-700 transition shadow-sm"
             >
+              <Icon name="plus" className="w-4 h-4" />
               New Article
             </Link>
           )}
         </div>
 
-        {/* STATES */}
-        {loading && (
-          <p className="text-slate-500">Loading…</p>
+        {!loading && !error && articles.length > 0 && (
+          <div className="grid grid-cols-4 gap-5 mb-10">
+            <StatCard label="Published" value={published} />
+            <StatCard label="Drafts" value={drafts} />
+            <StatCard label="In review" value={inReview} />
+            <StatCard label="Total views" value={totalViews} />
+          </div>
         )}
 
+        {loading && <p className="text-lg text-slate-500">Loading…</p>}
+
         {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+          <div className="text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
             {error}
           </div>
         )}
 
         {!loading && !error && articles.length === 0 && (
-          <p className="text-slate-500">
-            No articles yet.
-          </p>
+          <div className="text-center py-16 bg-white border border-dashed border-slate-300 rounded-xl">
+            <p className="text-lg text-slate-500">No articles yet.</p>
+          </div>
         )}
 
-        {/* ARTICLES LIST */}
-        <ul className="space-y-3">
+        <div className="grid grid-cols-2 gap-5">
           {articles.map((article) => (
-            <li key={article.id}>
-              <Link
-                to={`/articles/${article.id}`}
-                className="block bg-white border border-slate-200 rounded-lg p-4 hover:border-blue-300 transition"
-              >
-                <div className="flex justify-between items-start">
-                  <h3 className="font-medium text-slate-800">
-                    {article.title}
-                  </h3>
-
-                  <span
-                    className={`text-xs font-medium px-2 py-0.5 rounded ${
-                      STATUS_STYLES[article.status] ||
-                      'bg-slate-100 text-slate-700'
-                    }`}
-                  >
-                    {article.status}
-                  </span>
-                </div>
-
-                <p className="text-sm text-slate-500 mt-1">
-                  {article.views} views
-                </p>
-              </Link>
-            </li>
+            <Link
+              key={article.id}
+              to={`/articles/${article.id}`}
+              className="group block bg-white border border-slate-200 rounded-xl p-7 shadow-sm hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all duration-150"
+            >
+              <div className="flex justify-between items-start gap-3 mb-3">
+                <h3 className="font-semibold text-xl text-slate-900 group-hover:text-blue-700 transition-colors">
+                  {article.title}
+                </h3>
+                <span
+                  className={`text-sm font-semibold px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${
+                    STATUS_STYLES[article.status] || 'bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  {article.status}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-base text-slate-500">
+                <Icon name="activity" className="w-4 h-4" />
+                {article.views} views
+              </div>
+            </Link>
           ))}
-        </ul>
-      </main>
-    </div>
+        </div>
+      </div>
+    </Layout>
   );
 }

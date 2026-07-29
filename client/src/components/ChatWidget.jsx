@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { sendChatMessage, getChatHistory } from '../api/chat';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 function getOrCreateSessionId(userEmail) {
   const key = `chat_session_${userEmail}`;
@@ -27,14 +27,24 @@ export default function ChatWidget() {
   // Lazy-load history only the first time the widget is opened
   useEffect(() => {
     if (!open || loadedOnce) return;
-    setLoading(true);
-    getChatHistory(sessionId)
-      .then((data) => setMessages(data.messages))
-      .catch((err) => setError(err.message))
-      .finally(() => {
-        setLoading(false);
-        setLoadedOnce(true);
-      });
+    let ignore = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const data = await getChatHistory(sessionId);
+        if (!ignore) setMessages(data.messages);
+      } catch (err) {
+        if (!ignore) setError(err.message);
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+          setLoadedOnce(true);
+        }
+      }
+    })();
+    return () => {
+      ignore = true;
+    };
   }, [open, loadedOnce, sessionId]);
 
   useEffect(() => {
