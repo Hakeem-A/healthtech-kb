@@ -28,14 +28,24 @@ export default function WidgetPage() {
 
   useEffect(() => {
     if (!open || loadedOnce || !apiKey) return;
-    setLoading(true);
-    getWidgetHistory(apiKey, sessionId)
-      .then((data) => setMessages(data.messages))
-      .catch((err) => setError(err.message))
-      .finally(() => {
-        setLoading(false);
-        setLoadedOnce(true);
-      });
+    let ignore = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const data = await getWidgetHistory(apiKey, sessionId);
+        if (!ignore) setMessages(data.messages);
+      } catch (err) {
+        if (!ignore) setError(err.message);
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+          setLoadedOnce(true);
+        }
+      }
+    })();
+    return () => {
+      ignore = true;
+    };
   }, [open, loadedOnce, apiKey, sessionId]);
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createUser } from '../api/users';
+import Layout from '../components/Layout';
 
 export default function AddUser() {
   const [fullName, setFullName] = useState('');
@@ -26,24 +27,22 @@ export default function AddUser() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 py-4">
-        <Link to="/users" className="text-sm text-blue-600">
+    <Layout>
+      <div className="max-w-lg mx-auto px-8 py-10">
+        <Link to="/users" className="text-base text-blue-600 font-medium mb-6 inline-block hover:text-blue-800">
           ← Users
         </Link>
-      </header>
 
-      <main className="max-w-md mx-auto px-6 py-8">
-        <h1 className="text-xl font-semibold text-slate-800 mb-6">Add User</h1>
+        <h1 className="text-3xl font-bold text-slate-900 mb-8">Add User</h1>
 
-        <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-lg p-6">
+        <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl shadow-sm p-8">
           {error && (
-            <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
+            <div className="mb-5 text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
               {error}
             </div>
           )}
 
-          <label htmlFor="full_name" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="full_name" className="block text-base font-medium text-slate-700 mb-2">
             Full name
           </label>
           <input
@@ -53,10 +52,10 @@ export default function AddUser() {
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             required
-            className="w-full border border-slate-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="email" className="block text-base font-medium text-slate-700 mb-2">
             Email
           </label>
           <input
@@ -67,10 +66,10 @@ export default function AddUser() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="off"
-            className="w-full border border-slate-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="password" className="block text-base font-medium text-slate-700 mb-2">
             Temporary password
           </label>
           <input
@@ -81,10 +80,10 @@ export default function AddUser() {
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="new-password"
-            className="w-full border border-slate-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <label htmlFor="role" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="role" className="block text-base font-medium text-slate-700 mb-2">
             Role
           </label>
           <select
@@ -92,7 +91,7 @@ export default function AddUser() {
             name="role"
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="w-full border border-slate-300 rounded px-3 py-2 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-7 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="viewer">Viewer</option>
             <option value="editor">Editor</option>
@@ -102,12 +101,12 @@ export default function AddUser() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
+            className="w-full bg-blue-600 text-white text-lg font-medium rounded-lg py-3.5 hover:bg-blue-700 transition disabled:opacity-50"
           >
             {loading ? 'Creating…' : 'Create user'}
           </button>
         </form>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 }

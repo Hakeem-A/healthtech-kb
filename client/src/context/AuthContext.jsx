@@ -1,7 +1,9 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useState, useCallback } from 'react';
 import { login as apiLogin } from '../api/client';
 
 const AuthContext = createContext(null);
+export { AuthContext };
+
 
 function decodeJwtPayload(token) {
   try {
@@ -40,10 +42,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
 }

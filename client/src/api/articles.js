@@ -27,3 +27,7 @@ export function listCategories() {
 export function listTags() {
   return api.get('/tags/');
 }
+
+export function searchArticles(q) {
+  return api.get(`/articles/search?q=${encodeURIComponent(q)}`);
+}
