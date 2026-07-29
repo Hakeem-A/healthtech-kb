@@ -10,7 +10,9 @@ from app.models.article import Article
 from app.models.tag import Tag
 from app.models.user import User
 from app.models.audit_log import AuditLog
-from app.schemas.article import ArticleCreate, ArticleUpdate, ArticleResponse, ArticleListItem
+from app.models.search_log import SearchLog
+from app.schemas.article import ArticleCreate, ArticleUpdate, ArticleResponse, ArticleListItem, ArticleSearchResult
+from app.services.kb_search import search_articles, extract_keywords, extract_snippet
 
 router = APIRouter()
 
@@ -67,6 +69,33 @@ def list_articles(db: Session = Depends(get_db), current_user: User = Depends(ge
     if current_user.role == "viewer":
         query = query.filter(Article.status == "published")
     return query.order_by(Article.created_at.desc()).all()
+
+
+@router.get("/search", response_model=List[ArticleSearchResult])
+def search_articles_endpoint(
+    q: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    keywords = extract_keywords(q)
+    include_all = current_user.role in ("editor", "admin")
+    results = search_articles(db, q, limit=10, include_all_statuses=include_all)
+
+    db.add(SearchLog(query=q, results_count=len(results), user_id=current_user.id))
+    db.commit()
+
+    return [
+        ArticleSearchResult(
+            id=article.id,
+            title=article.title,
+            slug=article.slug,
+            status=article.status,
+            category_id=article.category_id,
+            views=article.views,
+            snippet=extract_snippet(article.content, keywords),
+        )
+        for article, score in results
+    ]
 
 
 @router.get("/{article_id}", response_model=ArticleResponse)

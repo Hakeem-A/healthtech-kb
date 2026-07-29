@@ -19,19 +19,24 @@ def extract_keywords(message: str) -> list[str]:
     return keywords or words  # fall back to everything if all filtered out
 
 
-def search_articles(db: Session, message: str, limit: int = 3) -> list[tuple[Article, int]]:
+def search_articles(db: Session, message: str, limit: int = 3, include_all_statuses: bool = False) -> list[tuple[Article, int]]:
     """
-    Simple keyword-match ranking over published articles only.
-    Title matches are weighted higher than content matches.
-    Returns list of (article, score) sorted by score descending.
+    Simple keyword-match ranking. By default restricted to published
+    articles only (used by the chat assistant, which must never surface
+    unpublished content). Pass include_all_statuses=True for
+    editor/admin-facing search, which should behave like the article
+    list — full visibility, not just published.
     """
     keywords = extract_keywords(message)
     if not keywords:
         return []
 
+    query = db.query(Article)
+    if not include_all_statuses:
+        query = query.filter(Article.status == "published")
+
     candidates = (
-        db.query(Article)
-        .filter(Article.status == "published")
+        query
         .filter(
             or_(*[Article.title.ilike(f"%{kw}%") for kw in keywords]
                 + [Article.content.ilike(f"%{kw}%") for kw in keywords])
@@ -52,7 +57,6 @@ def search_articles(db: Session, message: str, limit: int = 3) -> list[tuple[Art
 
     scored.sort(key=lambda pair: pair[1], reverse=True)
     return scored[:limit]
-
 
 def extract_snippet(content: str, keywords: list[str], window: int = 160) -> str:
     """Return a short snippet centered on the first keyword match, or the
