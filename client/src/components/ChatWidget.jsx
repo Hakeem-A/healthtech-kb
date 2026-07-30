@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { sendChatMessage, getChatHistory } from '../api/chat';
+import { sendChatMessage, getChatHistory, rateChatMessage } from '../api/chat';
 import { useAuth } from '../context/useAuth';
+import Icon from '../components/icons';
 
 function getOrCreateSessionId(userEmail) {
   const key = `chat_session_${userEmail}`;
@@ -24,7 +25,6 @@ export default function ChatWidget() {
   const [error, setError] = useState(null);
   const bottomRef = useRef(null);
 
-  // Lazy-load history only the first time the widget is opened
   useEffect(() => {
     if (!open || loadedOnce) return;
     let ignore = false;
@@ -69,12 +69,29 @@ export default function ChatWidget() {
       const res = await sendChatMessage(sessionId, userMessage);
       setMessages((prev) => [
         ...prev,
-        { id: `bot-${Date.now()}`, sender: 'bot', message: res.reply, timestamp: new Date().toISOString() },
+        {
+          id: res.message_id,
+          sender: 'bot',
+          message: res.reply,
+          timestamp: new Date().toISOString(),
+          helpful: null,
+        },
       ]);
     } catch (err) {
       setError(err.message);
     } finally {
       setSending(false);
+    }
+  }
+
+  async function handleThumb(messageId, helpful) {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === messageId ? { ...m, helpful } : m))
+    );
+    try {
+      await rateChatMessage(messageId, helpful);
+    } catch {
+      // best-effort — no need to surface an error for a thumbs vote
     }
   }
 
@@ -105,15 +122,37 @@ export default function ChatWidget() {
             {messages.map((m) => {
               const isUser = m.sender !== 'bot';
               return (
-                <div
-                  key={m.id}
-                  className={`max-w-[85%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
-                    isUser
-                      ? 'bg-blue-600 text-white self-end'
-                      : 'bg-slate-100 text-slate-800 self-start'
-                  }`}
-                >
-                  {m.message}
+                <div key={m.id} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+                  <div
+                    className={`max-w-[85%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
+                      isUser ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-800'
+                    }`}
+                  >
+                    {m.message}
+                  </div>
+
+                  {!isUser && typeof m.id === 'number' && (
+                    <div className="flex gap-2 mt-1 px-1">
+                      <button
+                        onClick={() => handleThumb(m.id, true)}
+                        className={`transition-colors ${
+                          m.helpful === true ? 'text-green-600' : 'text-slate-400 hover:text-green-600'
+                        }`}
+                        aria-label="Helpful"
+                      >
+                        <Icon name="thumbsUp" className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleThumb(m.id, false)}
+                        className={`transition-colors ${
+                          m.helpful === false ? 'text-red-600' : 'text-slate-400 hover:text-red-600'
+                        }`}
+                        aria-label="Not helpful"
+                      >
+                        <Icon name="thumbsDown" className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}

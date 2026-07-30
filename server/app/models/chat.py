@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 
@@ -39,4 +39,5 @@ class ChatMessage(Base):
     timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     chat_log = relationship("ChatLog", back_populates="messages")
+    helpful = Column(Boolean, nullable=True)
 

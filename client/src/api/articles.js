@@ -42,3 +42,11 @@ export function approveArticle(id) {
 export function rejectArticle(id, reason) {
   return api.put(`/articles/${id}/reject`, { reason });
 }
+
+export function submitFeedback(articleId, rating, comment) {
+  return api.post(`/articles/${articleId}/feedback`, { rating, comment });
+}
+
+export function getFeedbackSummary(articleId) {
+  return api.get(`/articles/${articleId}/feedback/summary`);
+}

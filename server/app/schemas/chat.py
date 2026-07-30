@@ -14,6 +14,7 @@ class ChatSendRequest(BaseModel):
 class ChatSendResponse(BaseModel):
     session_id: str
     reply: str
+    message_id: int
 
 
 class ChatMessageResponse(BaseModel):
@@ -29,4 +30,5 @@ class ChatHistoryResponse(BaseModel):
     session_id: str
     messages: List[ChatMessageResponse]
 
-
+class ChatMessageFeedback(BaseModel):
+    helpful: bool
