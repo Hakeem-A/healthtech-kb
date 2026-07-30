@@ -14,7 +14,8 @@ class Article(Base):
     category_id = Column(Integer, ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False)
     author_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True) # Let's make it nullable in case author is deleted, or RESTRICT depending on preferences. Nullable with SET NULL is safer.
     status = Column(String, default="draft")  # draft, under_review, published, archived
-    tags = Column(String, nullable=True)       # Varchar column for easy display/fallback
+    tags = Column(String, nullable=True)  
+    rejection_reason = Column(Text, nullable=True)     # Varchar column for easy display/fallback
     views = Column(Integer, default=0)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(

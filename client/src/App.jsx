@@ -11,6 +11,8 @@ import UserList from './pages/UserList';
 import AddUser from './pages/AddUser';
 import WidgetPage from './pages/WidgetPage';
 import SearchResults from './pages/SearchResults';
+import ReviewQueue from './pages/ReviewQueue';
+
 
 
 function AppRoutes() {
@@ -22,6 +24,7 @@ function AppRoutes() {
         <Route path="/widget" element={<WidgetPage />} />
         <Route path="/search" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
         <Route path="/articles" element={<ProtectedRoute><ArticleList /></ProtectedRoute>} />
+        <Route path="/review" element={<ProtectedRoute requireRole="admin"><ReviewQueue /></ProtectedRoute>} />
         <Route path="/articles/new" element={<ProtectedRoute requireRole="editor"><ArticleEditor /></ProtectedRoute>} />
         <Route path="/articles/:id/edit" element={<ProtectedRoute requireRole="editor"><ArticleEditor /></ProtectedRoute>} />
         <Route path="/articles/:id" element={<ProtectedRoute><ArticleDetail /></ProtectedRoute>} />

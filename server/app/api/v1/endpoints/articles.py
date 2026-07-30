@@ -11,7 +11,10 @@ from app.models.tag import Tag
 from app.models.user import User
 from app.models.audit_log import AuditLog
 from app.models.search_log import SearchLog
-from app.schemas.article import ArticleCreate, ArticleUpdate, ArticleResponse, ArticleListItem, ArticleSearchResult
+from app.schemas.article import (
+    ArticleCreate, ArticleUpdate, ArticleResponse, ArticleListItem,
+    ArticleSearchResult, ArticleRejectRequest,
+)
 from app.services.kb_search import search_articles, extract_keywords, extract_snippet
 
 router = APIRouter()
@@ -98,6 +101,18 @@ def search_articles_endpoint(
     ]
 
 
+@router.get("/review-queue", response_model=List[ArticleListItem],
+            dependencies=[Depends(require_role_hierarchy("admin"))])
+def review_queue(db: Session = Depends(get_db)):
+    # Registered before /{article_id} so "review-queue" isn't parsed as an id.
+    return (
+        db.query(Article)
+        .filter(Article.status == "under_review")
+        .order_by(Article.updated_at.asc())
+        .all()
+    )
+
+
 @router.get("/{article_id}", response_model=ArticleResponse)
 def get_article(article_id: int, db: Session = Depends(get_db),
                  current_user: User = Depends(get_current_user)):
@@ -123,11 +138,15 @@ def update_article(article_id: int, payload: ArticleUpdate, db: Session = Depend
         if payload.status in ("published", "archived") and current_user.role != "admin":
             raise HTTPException(status_code=403, detail="Only admins can publish or archive articles")
 
+    content_changed = False
+
     if payload.title is not None:
         article.title = payload.title
         article.slug = unique_slug(db, slugify(payload.title), exclude_id=article.id)
+        content_changed = True
     if payload.content is not None:
         article.content = payload.content
+        content_changed = True
     if payload.category_id is not None:
         article.category_id = payload.category_id
     if payload.status is not None:
@@ -136,9 +155,62 @@ def update_article(article_id: int, payload: ArticleUpdate, db: Session = Depend
         tags = db.query(Tag).filter(Tag.id.in_(payload.tag_ids)).all()
         article.tags_rel = tags
 
+    # Resubmitting edited content clears any prior rejection reason — it's
+    # stale once the editor has actually changed the article.
+    if content_changed and article.rejection_reason:
+        article.rejection_reason = None
+
     db.add(AuditLog(
         actor_id=current_user.id,
         action="update_article",
+        target_type="article",
+        target_id=article.id,
+    ))
+    db.commit()
+    db.refresh(article)
+    return article
+
+
+@router.put("/{article_id}/approve", response_model=ArticleResponse,
+            dependencies=[Depends(require_role_hierarchy("admin"))])
+def approve_article(article_id: int, db: Session = Depends(get_db),
+                     current_user: User = Depends(get_current_user)):
+    article = db.query(Article).filter(Article.id == article_id).first()
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+    if article.status != "under_review":
+        raise HTTPException(status_code=400, detail="Only articles under review can be approved")
+
+    article.status = "published"
+    article.rejection_reason = None
+
+    db.add(AuditLog(
+        actor_id=current_user.id,
+        action="approve_article",
+        target_type="article",
+        target_id=article.id,
+    ))
+    db.commit()
+    db.refresh(article)
+    return article
+
+
+@router.put("/{article_id}/reject", response_model=ArticleResponse,
+            dependencies=[Depends(require_role_hierarchy("admin"))])
+def reject_article(article_id: int, payload: ArticleRejectRequest, db: Session = Depends(get_db),
+                    current_user: User = Depends(get_current_user)):
+    article = db.query(Article).filter(Article.id == article_id).first()
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+    if article.status != "under_review":
+        raise HTTPException(status_code=400, detail="Only articles under review can be rejected")
+
+    article.status = "draft"
+    article.rejection_reason = payload.reason
+
+    db.add(AuditLog(
+        actor_id=current_user.id,
+        action=f"reject_article: {payload.reason}",
         target_type="article",
         target_id=article.id,
     ))

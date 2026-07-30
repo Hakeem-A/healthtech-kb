@@ -69,6 +69,7 @@ class ArticleResponse(BaseModel):
     author_id: Optional[int]
     views: int
     tags: List[TagResponse] = []
+    rejection_reason: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -78,11 +79,6 @@ class ArticleResponse(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def map_tags_rel(cls, obj: Any):
-        # Article has both a legacy `tags` string column and the real
-        # `tags_rel` many-to-many relationship. Read from `tags_rel` so
-        # the API's `tags` field reflects actual linked Tag rows, not
-        # the (currently unused) string column, which is a plain string
-        # (e.g. "pharmacy") and fails list validation.
         if hasattr(obj, "tags_rel"):
             obj.tags = obj.tags_rel
         return obj
@@ -99,3 +95,6 @@ class ArticleSearchResult(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ArticleRejectRequest(BaseModel):
+    reason: str = Field(..., min_length=1)
