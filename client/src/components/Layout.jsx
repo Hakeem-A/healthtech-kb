@@ -60,7 +60,7 @@ function SidebarForRole({ role, pathname }) {
           <NavItem to="/articles" icon="articles" label="Articles" active={pathname.startsWith('/articles')} />
         </NavSection>
         <NavSection title="Admin">
-          <NavItem icon="inbox" label="Review queue" />
+          <NavItem to="/review" icon="inbox" label="Review queue" active={pathname === '/review'} />
           <NavItem icon="chart" label="Analytics" />
           <NavItem to="/users" icon="users" label="Users & roles" active={pathname.startsWith('/users')} />
           <NavItem icon="shield" label="Audit log" />

@@ -150,6 +150,13 @@ export default function ArticleDetail() {
               <span className="text-slate-300">|</span>
               <span>Updated {formatDate(article.updated_at)}</span>
             </div>
+            
+            {article.status === 'draft' && article.rejection_reason && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                  <p className="text-sm font-semibold text-red-800 mb-1">Rejected by admin</p>
+                  <p className="text-base text-red-700">{article.rejection_reason}</p>
+            </div>
+)}
 
             {article.tags?.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-6">
