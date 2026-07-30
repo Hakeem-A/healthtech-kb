@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, Request
+from fastapi import APIRouter, Depends, Header, Request, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 
@@ -9,6 +9,7 @@ from app.core.limiter import limiter
 from app.models.chat import ChatLog, ChatMessage
 from app.models.user import User as UserModel
 from app.services.kb_search import compose_reply
+from app.schemas.chat import ChatMessageFeedback
 
 from app.schemas.chat import (
     ChatHistoryResponse,
@@ -111,8 +112,9 @@ def send_chat_message(
     )
     db.add(bot_msg)
     db.commit()
+    db.refresh(bot_msg)
 
-    return ChatSendResponse(session_id=payload.session_id, reply=reply_text)
+    return ChatSendResponse(session_id=payload.session_id, reply=reply_text, message_id=bot_msg.id)
 
 
 @router.get("/history", response_model=ChatHistoryResponse)
@@ -138,3 +140,19 @@ def get_chat_history(
         .all()
     )
     return ChatHistoryResponse(session_id=session_id, messages=messages)
+@router.put("/messages/{message_id}/feedback")
+def rate_chat_message(
+    message_id: int,
+    payload: ChatMessageFeedback,
+    db: Session = Depends(get_db),
+    caller: ChatCaller = Depends(get_chat_caller),
+):
+    message = db.query(ChatMessage).filter(ChatMessage.id == message_id).first()
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    if message.sender != "bot":
+        raise HTTPException(status_code=400, detail="Only bot replies can be rated")
+
+    message.helpful = payload.helpful
+    db.commit()
+    return {"id": message.id, "helpful": message.helpful}

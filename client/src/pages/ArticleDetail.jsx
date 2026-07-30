@@ -4,6 +4,8 @@ import { getArticle, deleteArticle, updateArticle, listArticles } from '../api/a
 import { useAuth } from '../context/useAuth';
 import Layout from '../components/Layout';
 import Icon from '../components/icons';
+import { submitFeedback, getFeedbackSummary } from '../api/articles';
+import StarRating from '../components/StarRating';
 
 const STATUS_STYLES = {
   draft: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
@@ -35,6 +37,27 @@ export default function ArticleDetail() {
   const canEdit = user.role === 'editor' || user.role === 'admin';
   const canPublish = user.role === 'admin';
   const canDelete = user.role === 'admin';
+  const [ratingSummary, setRatingSummary] = useState(null);
+  const [ratingBusy, setRatingBusy] = useState(false);
+
+useEffect(() => {
+  if (article?.status === 'published') {
+    getFeedbackSummary(id).then(setRatingSummary).catch(() => {});
+  }
+}, [id, article?.status]);
+
+async function handleRate(stars) {
+  setRatingBusy(true);
+  try {
+    await submitFeedback(id, stars);
+    const summary = await getFeedbackSummary(id);
+    setRatingSummary(summary);
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    setRatingBusy(false);
+  }
+}
 
   useEffect(() => {
     let ignore = false;
@@ -213,6 +236,25 @@ export default function ArticleDetail() {
               </div>
             )}
           </div>
+          {article.status === 'published' && (
+  <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-6">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-base font-medium text-slate-700 mb-1">Was this helpful?</p>
+        {ratingSummary?.rating_count > 0 && (
+          <p className="text-sm text-slate-500">
+            {ratingSummary.average_rating} average ({ratingSummary.rating_count} rating{ratingSummary.rating_count !== 1 ? 's' : ''})
+          </p>
+        )}
+      </div>
+      <StarRating
+        value={ratingSummary?.my_rating || 0}
+        onRate={handleRate}
+        readOnly={ratingBusy}
+      />
+    </div>
+  </div>
+)}
 
           {/* Right sidebar */}
           <aside className="space-y-5">

@@ -3,7 +3,9 @@ import re
 
 from fastapi import APIRouter, Depends, HTTPException, status as http_status
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from app.models.feedback import Feedback
+from app.schemas.feedback import FeedbackCreate, FeedbackResponse, ArticleRatingSummary
+from sqlalchemy import or_, func
 
 from app.api.deps import get_db, get_current_user, require_role_hierarchy
 from app.models.article import Article
@@ -73,6 +75,61 @@ def list_articles(db: Session = Depends(get_db), current_user: User = Depends(ge
         query = query.filter(Article.status == "published")
     return query.order_by(Article.created_at.desc()).all()
 
+@router.post("/{article_id}/feedback", response_model=FeedbackResponse)
+def submit_feedback(article_id: int, payload: FeedbackCreate, db: Session = Depends(get_db),
+                     current_user: User = Depends(get_current_user)):
+    article = db.query(Article).filter(Article.id == article_id).first()
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+    if article.status != "published":
+        raise HTTPException(status_code=403, detail="Can only rate published articles")
+
+    existing = (
+        db.query(Feedback)
+        .filter(Feedback.article_id == article_id, Feedback.user_id == current_user.id)
+        .first()
+    )
+
+    if existing:
+        existing.rating = payload.rating
+        existing.comment = payload.comment
+        db.commit()
+        db.refresh(existing)
+        return existing
+
+    feedback = Feedback(
+        article_id=article_id,
+        user_id=current_user.id,
+        rating=payload.rating,
+        comment=payload.comment,
+    )
+    db.add(feedback)
+    db.commit()
+    db.refresh(feedback)
+    return feedback
+
+
+@router.get("/{article_id}/feedback/summary", response_model=ArticleRatingSummary)
+def get_feedback_summary(article_id: int, db: Session = Depends(get_db),
+                          current_user: User = Depends(get_current_user)):
+    result = (
+        db.query(func.avg(Feedback.rating), func.count(Feedback.id))
+        .filter(Feedback.article_id == article_id)
+        .first()
+    )
+    avg_rating, count = result if result else (None, 0)
+
+    my_feedback = (
+        db.query(Feedback)
+        .filter(Feedback.article_id == article_id, Feedback.user_id == current_user.id)
+        .first()
+    )
+
+    return ArticleRatingSummary(
+        average_rating=round(float(avg_rating), 1) if avg_rating is not None else None,
+        rating_count=count or 0,
+        my_rating=my_feedback.rating if my_feedback else None,
+    )
 
 @router.get("/search", response_model=List[ArticleSearchResult])
 def search_articles_endpoint(

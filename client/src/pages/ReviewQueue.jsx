@@ -12,15 +12,23 @@ export default function ReviewQueue() {
   const [rejectingId, setRejectingId] = useState(null);
   const [reason, setReason] = useState('');
 
-  function load() {
-    setLoading(true);
-    listReviewQueue()
-      .then(setArticles)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }
-
-  useEffect(load, []);
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const data = await listReviewQueue();
+        if (!ignore) setArticles(data);
+      } catch (err) {
+        if (!ignore) setError(err.message);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    })();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   async function handleApprove(id) {
     setBusyId(id);

@@ -7,3 +7,6 @@ export function sendChatMessage(sessionId, message) {
 export function getChatHistory(sessionId) {
   return api.get(`/chat/history?session_id=${encodeURIComponent(sessionId)}`);
 }
+export function rateChatMessage(messageId, helpful) {
+  return api.put(`/chat/messages/${messageId}/feedback`, { helpful });
+}

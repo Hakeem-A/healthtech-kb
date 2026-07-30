@@ -53,7 +53,7 @@ class DualOriginCORSMiddleware:
             # X-API-Key, the dashboard via JWT.
             allow_origins=settings.widget_origins_list + settings.dashboard_origins_list,
             allow_credentials=False,
-            allow_methods=["GET", "POST", "OPTIONS"],
+            allow_methods=["GET", "POST","PUT", "OPTIONS"],
             allow_headers=["X-API-Key", "Authorization", "Content-Type"],
         )
         self.app = app
