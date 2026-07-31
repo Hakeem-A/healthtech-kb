@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from sqlalchemy import text
 
 load_dotenv()
 
@@ -12,6 +13,7 @@ from slowapi.errors import RateLimitExceeded
 from app.api.v1.endpoints import auth, users, chat, articles, categories, tags, analytics
 from app.core.cors import DualOriginCORSMiddleware, assert_no_origin_overlap
 from app.core.limiter import limiter
+from app.db.session import engine
 
 API_PREFIX = "/api/v1"
 
@@ -42,4 +44,17 @@ def root():
 
 @app.get("/health", tags=["Root"])
 def health_check():
-    return {"status": "ok"}
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return {
+            "status": "ok",
+            "database": "connected",
+            
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "database": "disconnected",
+            "details": str(e),
+        }
