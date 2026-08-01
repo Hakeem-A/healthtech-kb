@@ -15,7 +15,7 @@ function initialsFromEmail(email) {
 }
 
 function NavItem({ to, icon, label, active }) {
-  const base = 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[15px] transition-colors';
+  const base = 'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-lg transition-colors';
   const activeCls = active
     ? 'bg-blue-50 text-blue-700 font-medium'
     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900';
@@ -23,7 +23,7 @@ function NavItem({ to, icon, label, active }) {
 
   const inner = (
     <>
-      <Icon name={icon} className="w-[18px] h-[18px] flex-shrink-0" />
+      <Icon name={icon} className="w-5 h-5 shrink-0" />
       <span>{label}</span>
     </>
   );
@@ -61,8 +61,7 @@ function SidebarForRole({ role, pathname }) {
         </NavSection>
         <NavSection title="Admin">
           <NavItem to="/review" icon="inbox" label="Review queue" active={pathname === '/review'} />
-          <NavItem icon="chart" label="Analytics" />
-          <NavItem to="/users" icon="users" label="Users & roles" active={pathname.startsWith('/users')} />
+          <NavItem to="/analytics" icon="chart" label="Analytics" active={pathname === '/analytics'} />          <NavItem to="/users" icon="users" label="Users & roles" active={pathname.startsWith('/users')} />
           <NavItem icon="shield" label="Audit log" />
           <NavItem icon="message" label="Assistant logs" />
         </NavSection>
@@ -125,6 +124,8 @@ export default function Layout({ children }) {
             className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"
           />
           <input
+            id="global-search"
+            name="global-search"
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
