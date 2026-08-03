@@ -1,4 +1,5 @@
 import re
+from html.parser import HTMLParser
 from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
@@ -13,20 +14,37 @@ STOPWORDS = {
 }
 
 
+class _HTMLStripper(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.reset()
+        self.strict = False
+        self.convert_charrefs = True
+        self._chunks = []
+
+    def handle_data(self, data):
+        self._chunks.append(data)
+
+    def get_text(self):
+        return "".join(self._chunks)
+
+
+def strip_html_tags(content: str) -> str:
+    """Article content is stored as HTML (Tiptap editor output). Strip
+    tags before doing any plain-text keyword matching or snippet slicing,
+    so search/chat never leaks raw markup into what the user reads."""
+    stripper = _HTMLStripper()
+    stripper.feed(content)
+    return stripper.get_text()
+
+
 def extract_keywords(message: str) -> list[str]:
     words = re.findall(r"[a-zA-Z0-9]+", message.lower())
     keywords = [w for w in words if w not in STOPWORDS and len(w) > 2]
-    return keywords or words  # fall back to everything if all filtered out
+    return keywords or words
 
 
 def search_articles(db: Session, message: str, limit: int = 3, include_all_statuses: bool = False) -> list[tuple[Article, int]]:
-    """
-    Simple keyword-match ranking. By default restricted to published
-    articles only (used by the chat assistant, which must never surface
-    unpublished content). Pass include_all_statuses=True for
-    editor/admin-facing search, which should behave like the article
-    list — full visibility, not just published.
-    """
     keywords = extract_keywords(message)
     if not keywords:
         return []
@@ -58,11 +76,12 @@ def search_articles(db: Session, message: str, limit: int = 3, include_all_statu
     scored.sort(key=lambda pair: pair[1], reverse=True)
     return scored[:limit]
 
+
 def extract_snippet(content: str, keywords: list[str], window: int = 160) -> str:
-    """Return a short snippet centered on the first keyword match, or the
-    start of the content if nothing matches directly."""
-    # Strip markdown heading markers (#, ##, ...) so snippets don't open
-    # with a bare "# Title" line when no keyword falls early in the body.
+    """Return a short plain-text snippet centered on the first keyword
+    match. Content may be HTML (Tiptap output) or legacy plain text —
+    HTML tags are stripped first so tags never leak into a snippet."""
+    content = strip_html_tags(content)
     content = re.sub(r"^#+\s*", "", content, flags=re.MULTILINE)
 
     content_lower = content.lower()
@@ -78,7 +97,7 @@ def extract_snippet(content: str, keywords: list[str], window: int = 160) -> str
         start = max(0, best_pos - window // 2)
         snippet = content[start:start + window]
 
-    snippet = " ".join(snippet.split())  # collapse whitespace/newlines
+    snippet = " ".join(snippet.split())
     return snippet.strip() + ("…" if len(snippet) >= window else "")
 
 
