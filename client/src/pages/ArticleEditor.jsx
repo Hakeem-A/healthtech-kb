@@ -9,6 +9,7 @@ import {
 } from '../api/articles';
 import { useAuth } from '../context/useAuth';
 import Layout from '../components/Layout';
+import RichTextEditor from '../components/RichTextEditor';
 
 export default function ArticleEditor() {
   const { id } = useParams();
@@ -67,7 +68,7 @@ export default function ArticleEditor() {
 
     const payload = {
       title,
-      content,
+      content, // now HTML from editor
       category_id: Number(categoryId),
       status,
       tag_ids: selectedTagIds,
@@ -120,12 +121,11 @@ export default function ArticleEditor() {
             </div>
           )}
 
-          <label htmlFor="title" className="block text-base font-medium text-slate-700 mb-2">
+          {/* Title */}
+          <label className="block text-base font-medium text-slate-700 mb-2">
             Title
           </label>
           <input
-            id="title"
-            name="title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -133,12 +133,11 @@ export default function ArticleEditor() {
             className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <label htmlFor="category" className="block text-base font-medium text-slate-700 mb-2">
+          {/* Category */}
+          <label className="block text-base font-medium text-slate-700 mb-2">
             Category
           </label>
           <select
-            id="category"
-            name="category"
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
             required
@@ -154,7 +153,8 @@ export default function ArticleEditor() {
             ))}
           </select>
 
-          <fieldset className="mb-5 border-0 p-0 m-0">
+          {/* Tags */}
+          <fieldset className="mb-5">
             <legend className="block text-base font-medium text-slate-700 mb-2">
               Tags
             </legend>
@@ -179,25 +179,19 @@ export default function ArticleEditor() {
             </div>
           </fieldset>
 
-          <label htmlFor="content" className="block text-base font-medium text-slate-700 mb-2">
+          {/* ✅ Rich Text Editor */}
+          <label className="block text-base font-medium text-slate-700 mb-2">
             Content
           </label>
-          <textarea
-            id="content"
-            name="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            required
-            rows={14}
-            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-5 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <div className="mb-5">
+            <RichTextEditor value={content} onChange={setContent} />
+          </div>
 
-          <label htmlFor="status" className="block text-base font-medium text-slate-700 mb-2">
+          {/* Status */}
+          <label className="block text-base font-medium text-slate-700 mb-2">
             Status
           </label>
           <select
-            id="status"
-            name="status"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -211,12 +205,14 @@ export default function ArticleEditor() {
               Archived{!canSetPublishedOrArchived ? ' (admin only)' : ''}
             </option>
           </select>
+
           {!canSetPublishedOrArchived && (
             <p className="text-sm text-slate-400 mb-5">
               Only admins can publish or archive articles.
             </p>
           )}
 
+          {/* Submit */}
           <button
             type="submit"
             disabled={saving}
