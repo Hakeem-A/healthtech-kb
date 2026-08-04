@@ -11,8 +11,15 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.2",
+    "@tiptap/extension-link": "^3.29.2",
+    "@tiptap/pm": "^3.29.2",
+    "@tiptap/react": "^3.29.2",
+    "@tiptap/starter-kit": "^3.29.2",
+    "dompurify": "^3.4.12",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-router-dom": "^7.18.2",
+    "recharts": "^3.10.1",
     "tailwindcss": "^4.3.2"
   },
   "devDependencies": {

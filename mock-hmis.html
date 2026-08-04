@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mock HMIS Dashboard</title>
+  <style>
+    body {
+      font-family: -apple-system, sans-serif;
+      background: #f1f5f9;
+      margin: 0;
+      padding: 40px;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      max-width: 600px;
+      margin: 0 auto;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    h1 { color: #1e293b; }
+    p { color: #475569; line-height: 1.6; }
+
+    #kb-widget-frame {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      width: 340px;
+      height: 500px;
+      border: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Mock HMIS Dashboard</h1>
+    <p>
+      This is a stand-in for the external Health Management Information System.
+      It has no relationship to the Knowledge Base app — different origin,
+      different codebase — and is only here to prove the KB Assistant widget
+      can be embedded into a completely separate host application via an
+      iframe, using cross-origin API-key authentication.
+    </p>
+    <p>
+      The chat bubble in the bottom-right corner is loaded from
+      <code>http://localhost:5173/widget</code>, running inside this page.
+    </p>
+  </div>
+
+  <!--
+    Embed snippet: point src at your KB app's /widget route, with your
+    issued API key as a query parameter. In production this URL would be
+    your deployed KB app's domain, not localhost.
+  -->
+  <iframe
+    id="kb-widget-frame"
+    src="http://localhost:5173/widget?apiKey=d_pacLsoU27UrW0mxR5vvCt-g8M7MNDh6bTOBqK8X2Y"
+    title="KB Assistant Widget"
+    allowtransparency="true"
+  ></iframe>
+</body>
+</html>
