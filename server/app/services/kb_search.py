@@ -7,10 +7,43 @@ from sqlalchemy import or_
 from app.models.article import Article
 
 STOPWORDS = {
-    "a", "an", "the", "is", "are", "was", "were", "do", "does", "did",
-    "how", "what", "when", "where", "why", "who", "can", "could", "should",
-    "i", "you", "we", "they", "it", "to", "of", "in", "on", "for", "and",
-    "or", "my", "me", "please", "help", "with", "about",
+    "a",
+    "an",
+    "the",
+    "is",
+    "are",
+    "was",
+    "were",
+    "do",
+    "does",
+    "did",
+    "how",
+    "what",
+    "when",
+    "where",
+    "why",
+    "who",
+    "can",
+    "could",
+    "should",
+    "i",
+    "you",
+    "we",
+    "they",
+    "it",
+    "to",
+    "of",
+    "in",
+    "on",
+    "for",
+    "and",
+    "or",
+    "my",
+    "me",
+    "please",
+    "help",
+    "with",
+    "about",
 }
 
 
@@ -44,7 +77,9 @@ def extract_keywords(message: str) -> list[str]:
     return keywords or words
 
 
-def search_articles(db: Session, message: str, limit: int = 3, include_all_statuses: bool = False) -> list[tuple[Article, int]]:
+def search_articles(
+    db: Session, message: str, limit: int = 3, include_all_statuses: bool = False
+) -> list[tuple[Article, int]]:
     keywords = extract_keywords(message)
     if not keywords:
         return []
@@ -53,14 +88,12 @@ def search_articles(db: Session, message: str, limit: int = 3, include_all_statu
     if not include_all_statuses:
         query = query.filter(Article.status == "published")
 
-    candidates = (
-        query
-        .filter(
-            or_(*[Article.title.ilike(f"%{kw}%") for kw in keywords]
-                + [Article.content.ilike(f"%{kw}%") for kw in keywords])
+    candidates = query.filter(
+        or_(
+            *[Article.title.ilike(f"%{kw}%") for kw in keywords]
+            + [Article.content.ilike(f"%{kw}%") for kw in keywords]
         )
-        .all()
-    )
+    ).all()
 
     scored: list[tuple[Article, int]] = []
     for article in candidates:
@@ -95,7 +128,7 @@ def extract_snippet(content: str, keywords: list[str], window: int = 160) -> str
         snippet = content[:window]
     else:
         start = max(0, best_pos - window // 2)
-        snippet = content[start:start + window]
+        snippet = content[start : start + window]
 
     snippet = " ".join(snippet.split())
     return snippet.strip() + ("…" if len(snippet) >= window else "")
@@ -114,10 +147,10 @@ def compose_reply(db: Session, message: str) -> str:
     top_article, _ = results[0]
     snippet = extract_snippet(top_article.content, keywords)
 
-    reply = f"From \"{top_article.title}\": {snippet}"
+    reply = f'From "{top_article.title}": {snippet}'
 
     if len(results) > 1:
-        others = ", ".join(f"\"{a.title}\"" for a, _ in results[1:])
+        others = ", ".join(f'"{a.title}"' for a, _ in results[1:])
         reply += f"\n\nRelated articles: {others}"
 
     return reply

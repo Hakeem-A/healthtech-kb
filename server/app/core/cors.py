@@ -19,6 +19,7 @@ widget_cors policy below must therefore accept both origin sets and
 both header types, even though it's still a "no credentials" policy
 overall (neither caller uses cookie-based credentials mode).
 """
+
 from starlette.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp, Receive, Scope, Send
 
@@ -51,9 +52,10 @@ class DualOriginCORSMiddleware:
             # Both the widget's own origins AND the dashboard's origins
             # can legitimately call /api/v1/chat — the widget via
             # X-API-Key, the dashboard via JWT.
-            allow_origins=settings.widget_origins_list + settings.dashboard_origins_list,
+            allow_origins=settings.widget_origins_list
+            + settings.dashboard_origins_list,
             allow_credentials=False,
-            allow_methods=["GET", "POST","PUT", "OPTIONS"],
+            allow_methods=["GET", "POST", "PUT", "OPTIONS"],
             allow_headers=["X-API-Key", "Authorization", "Content-Type"],
         )
         self.app = app

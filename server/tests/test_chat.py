@@ -1,6 +1,7 @@
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -62,6 +63,17 @@ class ChatEndpointTests(unittest.TestCase):
         data = res.json()
         self.assertEqual(data["session_id"], "test-sess-1")
         self.assertIn("Password Reset Guide", data["reply"])
+
+    def test_chat_uses_llm_reply_when_available(self):
+        with patch("app.api.v1.endpoints.chat.generate_reply", return_value="This is the LLM answer"):
+            res = self.client.post(
+                "/api/v1/chat/",
+                json={"session_id": "test-sess-3", "message": "how to reset password?"},
+                headers={"X-API-Key": self.valid_api_key},
+            )
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["reply"], "This is the LLM answer")
 
     def test_widget_chat_with_invalid_api_key_fails(self):
         res = self.client.post(

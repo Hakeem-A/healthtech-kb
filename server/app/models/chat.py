@@ -10,7 +10,9 @@ class ChatLog(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
     session_id = Column(String, index=True, nullable=False)
 
     # Optional widget metadata
@@ -31,7 +33,9 @@ class ChatMessage(Base):
     __tablename__ = "chat_messages"
 
     id = Column(Integer, primary_key=True, index=True)
-    chat_log_id = Column(Integer, ForeignKey("chat_logs.id", ondelete="CASCADE"), nullable=False)
+    chat_log_id = Column(
+        Integer, ForeignKey("chat_logs.id", ondelete="CASCADE"), nullable=False
+    )
 
     sender = Column(String, nullable=False)  # e.g., "user" | "hmis_widget" | "bot"
     message = Column(Text, nullable=False)
@@ -40,4 +44,3 @@ class ChatMessage(Base):
 
     chat_log = relationship("ChatLog", back_populates="messages")
     helpful = Column(Boolean, nullable=True)
-

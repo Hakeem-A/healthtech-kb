@@ -48,6 +48,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
     return encoded_jwt
 
+
 def resolve_widget_host(api_key: str) -> str | None:
     """
     Returns the host-app name (e.g. "hmis_mock") for a valid widget API key,

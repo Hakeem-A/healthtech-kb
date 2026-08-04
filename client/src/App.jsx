@@ -13,6 +13,7 @@ import WidgetPage from './pages/WidgetPage';
 import SearchResults from './pages/SearchResults';
 import ReviewQueue from './pages/ReviewQueue';
 import Analytics from './pages/Analytics';
+import Landing from './pages/Landing';
 
 
 
@@ -32,9 +33,10 @@ function AppRoutes() {
         <Route path="/articles/:id" element={<ProtectedRoute><ArticleDetail /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute requireRole="admin"><UserList /></ProtectedRoute>} />
         <Route path="/users/new" element={<ProtectedRoute requireRole="admin"><AddUser /></ProtectedRoute>} />
+        <Route path="/" element={<Landing />} />
         <Route path="*" element={<Navigate to="/articles" replace />} />
       </Routes>
-      {isAuthenticated && <ChatWidget />}
+      <ChatWidget />
     </>
   );
 }

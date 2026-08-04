@@ -3,18 +3,16 @@ from typing import List, Optional, Any
 from pydantic import BaseModel, ConfigDict
 
 
-
 class ChatSendRequest(BaseModel):
     session_id: str
     message: str
-    # Optional metadata from the widget (can be used for analytics)
     widget_source: Optional[str] = None
 
 
 class ChatSendResponse(BaseModel):
     session_id: str
     reply: str
-    message_id: int
+    message_id: Optional[int] = None
 
 
 class ChatMessageResponse(BaseModel):
@@ -22,6 +20,7 @@ class ChatMessageResponse(BaseModel):
     sender: str
     message: str
     timestamp: datetime
+    helpful: Optional[bool] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -29,6 +28,7 @@ class ChatMessageResponse(BaseModel):
 class ChatHistoryResponse(BaseModel):
     session_id: str
     messages: List[ChatMessageResponse]
+
 
 class ChatMessageFeedback(BaseModel):
     helpful: bool
