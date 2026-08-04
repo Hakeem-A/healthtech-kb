@@ -6,11 +6,14 @@ class TopArticle(BaseModel):
     id: int
     title: str
     views: int
+
+
 class StatusBreakdown(BaseModel):
     published: int
     draft: int
     under_review: int
     archived: int
+
 
 class AnalyticsSummary(BaseModel):
     pending_review_count: int

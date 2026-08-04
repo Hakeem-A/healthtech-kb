@@ -4,10 +4,13 @@ import { useAuth } from '../context/useAuth';
 import Icon from '../components/icons';
 
 function getOrCreateSessionId(userEmail) {
-  const key = `chat_session_${userEmail}`;
+  if (userEmail) {
+    return `user-${userEmail}`;
+  }
+  const key = 'chat_session_guest';
   let sessionId = sessionStorage.getItem(key);
   if (!sessionId) {
-    sessionId = `${userEmail}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    sessionId = `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     sessionStorage.setItem(key, sessionId);
   }
   return sessionId;
@@ -15,8 +18,10 @@ function getOrCreateSessionId(userEmail) {
 
 export default function ChatWidget() {
   const { user } = useAuth();
+  const isGuest = !user;
+
   const [open, setOpen] = useState(false);
-  const [sessionId] = useState(() => getOrCreateSessionId(user.email));
+  const [sessionId, setSessionId] = useState(() => getOrCreateSessionId(user?.email));
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +31,16 @@ export default function ChatWidget() {
   const bottomRef = useRef(null);
 
   useEffect(() => {
-    if (!open || loadedOnce) return;
+    setSessionId(getOrCreateSessionId(user?.email));
+    setMessages([]);
+    setLoadedOnce(false);
+  }, [user?.email]);
+
+  useEffect(() => {
+    if (!open || loadedOnce || isGuest) {
+      if (isGuest) setLoadedOnce(true);
+      return;
+    }
     let ignore = false;
     (async () => {
       setLoading(true);
@@ -45,11 +59,21 @@ export default function ChatWidget() {
     return () => {
       ignore = true;
     };
-  }, [open, loadedOnce, sessionId]);
+  }, [open, loadedOnce, sessionId, isGuest]);
 
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, open]);
+
+  function handleNewConversation() {
+    const freshId = `user-${user?.email || 'guest'}-${Date.now()}`;
+    setSessionId(freshId);
+    if (user?.email) {
+      sessionStorage.setItem(`chat_session_${user.email}`, freshId);
+    }
+    setMessages([]);
+    setLoadedOnce(true);
+  }
 
   async function handleSend(e) {
     e.preventDefault();
@@ -70,7 +94,7 @@ export default function ChatWidget() {
       setMessages((prev) => [
         ...prev,
         {
-          id: res.message_id,
+          id: res.message_id ?? `bot-${Date.now()}`,
           sender: 'bot',
           message: res.reply,
           timestamp: new Date().toISOString(),
@@ -91,7 +115,7 @@ export default function ChatWidget() {
     try {
       await rateChatMessage(messageId, helpful);
     } catch {
-      // best-effort — no need to surface an error for a thumbs vote
+      // best-effort
     }
   }
 
@@ -100,14 +124,29 @@ export default function ChatWidget() {
       {open && (
         <div className="mb-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-lg shadow-xl flex flex-col overflow-hidden">
           <div className="bg-blue-600 text-white px-4 py-3 flex justify-between items-center">
-            <span className="font-medium text-sm">KB Assistant</span>
-            <button
-              onClick={() => setOpen(false)}
-              className="text-white/80 hover:text-white text-lg leading-none"
-              aria-label="Close chat"
-            >
-              ×
-            </button>
+            <div>
+              <span className="font-medium text-sm block">KB Assistant</span>
+              <span className="text-xs text-blue-100">
+                {isGuest ? "You're chatting as a guest" : 'Welcome back — continuing your conversation'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {!isGuest && (
+                <button
+                  onClick={handleNewConversation}
+                  className="text-white/80 hover:text-white text-xs underline"
+                >
+                  New
+                </button>
+              )}
+              <button
+                onClick={() => setOpen(false)}
+                className="text-white/80 hover:text-white text-lg leading-none"
+                aria-label="Close chat"
+              >
+                ×
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 p-3 overflow-y-auto min-h-[320px] max-h-[400px] flex flex-col gap-2">
@@ -131,7 +170,7 @@ export default function ChatWidget() {
                     {m.message}
                   </div>
 
-                  {!isUser && typeof m.id === 'number' && (
+                  {!isUser && (
                     <div className="flex gap-2 mt-1 px-1">
                       <button
                         onClick={() => handleThumb(m.id, true)}

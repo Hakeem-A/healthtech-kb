@@ -96,5 +96,6 @@ class ArticleSearchResult(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ArticleRejectRequest(BaseModel):
     reason: str = Field(..., min_length=1)

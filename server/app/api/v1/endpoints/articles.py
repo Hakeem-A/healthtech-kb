@@ -14,8 +14,12 @@ from app.models.user import User
 from app.models.audit_log import AuditLog
 from app.models.search_log import SearchLog
 from app.schemas.article import (
-    ArticleCreate, ArticleUpdate, ArticleResponse, ArticleListItem,
-    ArticleSearchResult, ArticleRejectRequest,
+    ArticleCreate,
+    ArticleUpdate,
+    ArticleResponse,
+    ArticleListItem,
+    ArticleSearchResult,
+    ArticleRejectRequest,
 )
 from app.services.kb_search import search_articles, extract_keywords, extract_snippet
 
@@ -42,10 +46,17 @@ def unique_slug(db: Session, base_slug: str, exclude_id: Optional[int] = None) -
     return slug
 
 
-@router.post("/", response_model=ArticleResponse, status_code=http_status.HTTP_201_CREATED,
-             dependencies=[Depends(require_role_hierarchy("editor"))])
-def create_article(payload: ArticleCreate, db: Session = Depends(get_db),
-                    current_user: User = Depends(get_current_user)):
+@router.post(
+    "/",
+    response_model=ArticleResponse,
+    status_code=http_status.HTTP_201_CREATED,
+    dependencies=[Depends(require_role_hierarchy("editor"))],
+)
+def create_article(
+    payload: ArticleCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     base_slug = slugify(payload.title)
     slug = unique_slug(db, base_slug)
 
@@ -69,15 +80,22 @@ def create_article(payload: ArticleCreate, db: Session = Depends(get_db),
 
 
 @router.get("/", response_model=List[ArticleListItem])
-def list_articles(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def list_articles(
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
     query = db.query(Article)
     if current_user.role == "viewer":
         query = query.filter(Article.status == "published")
     return query.order_by(Article.created_at.desc()).all()
 
+
 @router.post("/{article_id}/feedback", response_model=FeedbackResponse)
-def submit_feedback(article_id: int, payload: FeedbackCreate, db: Session = Depends(get_db),
-                     current_user: User = Depends(get_current_user)):
+def submit_feedback(
+    article_id: int,
+    payload: FeedbackCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     article = db.query(Article).filter(Article.id == article_id).first()
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
@@ -110,8 +128,11 @@ def submit_feedback(article_id: int, payload: FeedbackCreate, db: Session = Depe
 
 
 @router.get("/{article_id}/feedback/summary", response_model=ArticleRatingSummary)
-def get_feedback_summary(article_id: int, db: Session = Depends(get_db),
-                          current_user: User = Depends(get_current_user)):
+def get_feedback_summary(
+    article_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     result = (
         db.query(func.avg(Feedback.rating), func.count(Feedback.id))
         .filter(Feedback.article_id == article_id)
@@ -130,6 +151,7 @@ def get_feedback_summary(article_id: int, db: Session = Depends(get_db),
         rating_count=count or 0,
         my_rating=my_feedback.rating if my_feedback else None,
     )
+
 
 @router.get("/search", response_model=List[ArticleSearchResult])
 def search_articles_endpoint(
@@ -158,8 +180,11 @@ def search_articles_endpoint(
     ]
 
 
-@router.get("/review-queue", response_model=List[ArticleListItem],
-            dependencies=[Depends(require_role_hierarchy("admin"))])
+@router.get(
+    "/review-queue",
+    response_model=List[ArticleListItem],
+    dependencies=[Depends(require_role_hierarchy("admin"))],
+)
 def review_queue(db: Session = Depends(get_db)):
     # Registered before /{article_id} so "review-queue" isn't parsed as an id.
     return (
@@ -171,20 +196,32 @@ def review_queue(db: Session = Depends(get_db)):
 
 
 @router.get("/{article_id}", response_model=ArticleResponse)
-def get_article(article_id: int, db: Session = Depends(get_db),
-                 current_user: User = Depends(get_current_user)):
+def get_article(
+    article_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     article = db.query(Article).filter(Article.id == article_id).first()
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
     if current_user.role == "viewer" and article.status != "published":
-        raise HTTPException(status_code=403, detail="You do not have access to this article")
+        raise HTTPException(
+            status_code=403, detail="You do not have access to this article"
+        )
     return article
 
 
-@router.put("/{article_id}", response_model=ArticleResponse,
-            dependencies=[Depends(require_role_hierarchy("editor"))])
-def update_article(article_id: int, payload: ArticleUpdate, db: Session = Depends(get_db),
-                    current_user: User = Depends(get_current_user)):
+@router.put(
+    "/{article_id}",
+    response_model=ArticleResponse,
+    dependencies=[Depends(require_role_hierarchy("editor"))],
+)
+def update_article(
+    article_id: int,
+    payload: ArticleUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     article = db.query(Article).filter(Article.id == article_id).first()
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
@@ -193,7 +230,9 @@ def update_article(article_id: int, payload: ArticleUpdate, db: Session = Depend
     # are restricted to draft <-> under_review.
     if payload.status is not None and payload.status != article.status:
         if payload.status in ("published", "archived") and current_user.role != "admin":
-            raise HTTPException(status_code=403, detail="Only admins can publish or archive articles")
+            raise HTTPException(
+                status_code=403, detail="Only admins can publish or archive articles"
+            )
 
     content_changed = False
 
@@ -217,78 +256,109 @@ def update_article(article_id: int, payload: ArticleUpdate, db: Session = Depend
     if content_changed and article.rejection_reason:
         article.rejection_reason = None
 
-    db.add(AuditLog(
-        actor_id=current_user.id,
-        action="update_article",
-        target_type="article",
-        target_id=article.id,
-    ))
+    db.add(
+        AuditLog(
+            actor_id=current_user.id,
+            action="update_article",
+            target_type="article",
+            target_id=article.id,
+        )
+    )
     db.commit()
     db.refresh(article)
     return article
 
 
-@router.put("/{article_id}/approve", response_model=ArticleResponse,
-            dependencies=[Depends(require_role_hierarchy("admin"))])
-def approve_article(article_id: int, db: Session = Depends(get_db),
-                     current_user: User = Depends(get_current_user)):
+@router.put(
+    "/{article_id}/approve",
+    response_model=ArticleResponse,
+    dependencies=[Depends(require_role_hierarchy("admin"))],
+)
+def approve_article(
+    article_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     article = db.query(Article).filter(Article.id == article_id).first()
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
     if article.status != "under_review":
-        raise HTTPException(status_code=400, detail="Only articles under review can be approved")
+        raise HTTPException(
+            status_code=400, detail="Only articles under review can be approved"
+        )
 
     article.status = "published"
     article.rejection_reason = None
 
-    db.add(AuditLog(
-        actor_id=current_user.id,
-        action="approve_article",
-        target_type="article",
-        target_id=article.id,
-    ))
+    db.add(
+        AuditLog(
+            actor_id=current_user.id,
+            action="approve_article",
+            target_type="article",
+            target_id=article.id,
+        )
+    )
     db.commit()
     db.refresh(article)
     return article
 
 
-@router.put("/{article_id}/reject", response_model=ArticleResponse,
-            dependencies=[Depends(require_role_hierarchy("admin"))])
-def reject_article(article_id: int, payload: ArticleRejectRequest, db: Session = Depends(get_db),
-                    current_user: User = Depends(get_current_user)):
+@router.put(
+    "/{article_id}/reject",
+    response_model=ArticleResponse,
+    dependencies=[Depends(require_role_hierarchy("admin"))],
+)
+def reject_article(
+    article_id: int,
+    payload: ArticleRejectRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     article = db.query(Article).filter(Article.id == article_id).first()
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
     if article.status != "under_review":
-        raise HTTPException(status_code=400, detail="Only articles under review can be rejected")
+        raise HTTPException(
+            status_code=400, detail="Only articles under review can be rejected"
+        )
 
     article.status = "draft"
     article.rejection_reason = payload.reason
 
-    db.add(AuditLog(
-        actor_id=current_user.id,
-        action=f"reject_article: {payload.reason}",
-        target_type="article",
-        target_id=article.id,
-    ))
+    db.add(
+        AuditLog(
+            actor_id=current_user.id,
+            action=f"reject_article: {payload.reason}",
+            target_type="article",
+            target_id=article.id,
+        )
+    )
     db.commit()
     db.refresh(article)
     return article
 
 
-@router.delete("/{article_id}", status_code=http_status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(require_role_hierarchy("admin"))])
-def delete_article(article_id: int, db: Session = Depends(get_db),
-                    current_user: User = Depends(get_current_user)):
+@router.delete(
+    "/{article_id}",
+    status_code=http_status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_role_hierarchy("admin"))],
+)
+def delete_article(
+    article_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     article = db.query(Article).filter(Article.id == article_id).first()
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
 
-    db.add(AuditLog(
-        actor_id=current_user.id,
-        action="delete_article",
-        target_type="article",
-        target_id=article.id,
-    ))
+    db.add(
+        AuditLog(
+            actor_id=current_user.id,
+            action="delete_article",
+            target_type="article",
+            target_id=article.id,
+        )
+    )
     db.delete(article)
     db.commit()

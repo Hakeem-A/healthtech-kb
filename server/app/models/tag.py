@@ -6,9 +6,17 @@ from app.db.session import Base
 article_tags = Table(
     "article_tags",
     Base.metadata,
-    Column("article_id", Integer, ForeignKey("articles.id", ondelete="CASCADE"), primary_key=True),
-    Column("tag_id", Integer, ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True)
+    Column(
+        "article_id",
+        Integer,
+        ForeignKey("articles.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    Column(
+        "tag_id", Integer, ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True
+    ),
 )
+
 
 class Tag(Base):
     __tablename__ = "tags"
@@ -18,4 +26,6 @@ class Tag(Base):
     slug = Column(String, unique=True, index=True, nullable=False)
 
     # Relationships
-    articles = relationship("Article", secondary=article_tags, back_populates="tags_rel")
+    articles = relationship(
+        "Article", secondary=article_tags, back_populates="tags_rel"
+    )

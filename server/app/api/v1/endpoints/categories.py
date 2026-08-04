@@ -31,8 +31,12 @@ def unique_slug(db: Session, base_slug: str, exclude_id: Optional[int] = None) -
     return slug
 
 
-@router.post("/", response_model=CategoryResponse, status_code=http_status.HTTP_201_CREATED,
-             dependencies=[Depends(require_role_hierarchy("editor"))])
+@router.post(
+    "/",
+    response_model=CategoryResponse,
+    status_code=http_status.HTTP_201_CREATED,
+    dependencies=[Depends(require_role_hierarchy("editor"))],
+)
 def create_category(payload: CategoryCreate, db: Session = Depends(get_db)):
     if payload.parent_id is not None:
         parent = db.query(Category).filter(Category.id == payload.parent_id).first()
@@ -68,16 +72,23 @@ def get_category(category_id: int, db: Session = Depends(get_db)):
     return category
 
 
-@router.put("/{category_id}", response_model=CategoryResponse,
-            dependencies=[Depends(require_role_hierarchy("editor"))])
-def update_category(category_id: int, payload: CategoryUpdate, db: Session = Depends(get_db)):
+@router.put(
+    "/{category_id}",
+    response_model=CategoryResponse,
+    dependencies=[Depends(require_role_hierarchy("editor"))],
+)
+def update_category(
+    category_id: int, payload: CategoryUpdate, db: Session = Depends(get_db)
+):
     category = db.query(Category).filter(Category.id == category_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
 
     if payload.parent_id is not None:
         if payload.parent_id == category_id:
-            raise HTTPException(status_code=400, detail="A category cannot be its own parent")
+            raise HTTPException(
+                status_code=400, detail="A category cannot be its own parent"
+            )
         parent = db.query(Category).filter(Category.id == payload.parent_id).first()
         if not parent:
             raise HTTPException(status_code=404, detail="Parent category not found")
@@ -99,8 +110,11 @@ def update_category(category_id: int, payload: CategoryUpdate, db: Session = Dep
     return category
 
 
-@router.delete("/{category_id}", status_code=http_status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(require_role_hierarchy("admin"))])
+@router.delete(
+    "/{category_id}",
+    status_code=http_status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_role_hierarchy("admin"))],
+)
 def delete_category(category_id: int, db: Session = Depends(get_db)):
     category = db.query(Category).filter(Category.id == category_id).first()
     if not category:

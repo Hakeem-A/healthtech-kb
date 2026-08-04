@@ -27,9 +27,7 @@ def login(
             detail="Invalid email or password",
         )
 
-    access_token = create_access_token(
-        data={"sub": str(user.email), "role": user.role}
-    )
+    access_token = create_access_token(data={"sub": str(user.email), "role": user.role})
 
     return {
         "access_token": access_token,
