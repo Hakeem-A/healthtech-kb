@@ -5,23 +5,34 @@ from urllib import request, error
 
 from dotenv import load_dotenv
 
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 env_path = os.path.join(BASE_DIR, ".env")
 
 load_dotenv(env_path)
 
 
-
 SYSTEM_PROMPT = """
-You are a healthcare knowledge base assistant for an HMIS system.
+You are a smart, conversational healthcare assistant inside an HMIS system.
+
+Your job:
+- Help users complete tasks (e.g., register patient, manage visits)
+- Explain workflows step-by-step
+- Answer naturally like ChatGPT
 
 Rules:
-- Answer using provided knowledge context if available
-- Be concise and clear
-- If unsure, say you don't know
-- Suggest related workflows if helpful
+- Use the provided context if available
+- If context is weak, still answer helpfully using general knowledge
+- Be conversational, not robotic
+- Give clear steps when explaining processes
+- Do NOT say "based on the context"
+- If unsure, ask a follow-up question
+
+Style:
+- Friendly
+- Clear
+- Practical
 """
+
 
 def _call_openrouter(messages: list[dict]) -> str:
     api_key = os.getenv("OPENROUTER_API_KEY")
@@ -31,7 +42,7 @@ def _call_openrouter(messages: list[dict]) -> str:
     payload = {
         "model": os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini"),
         "messages": messages,
-        "temperature": 0.3,
+        "temperature": 0.5,
     }
 
     req = request.Request(
@@ -59,23 +70,29 @@ def _call_openrouter(messages: list[dict]) -> str:
         raise RuntimeError(f"OpenRouter request failed: {exc}") from exc
 
 
-def generate_reply(user_message: str, context: str = "", history: Optional[list] = None) -> str:
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT}
-    ]
+def generate_reply(
+    user_message: str, context: str = "", history: Optional[list] = None
+) -> str:
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+
 
     if context:
-        messages.append({
-            "role": "system",
-            "content": f"Context:\n{context}"
-        })
+        messages.append(
+            {
+                "role": "system",
+                "content": f"""
+    Relevant knowledge from the system:
+
+    {context}
+
+    Use this to help answer the user clearly and practically.
+    """,
+            }
+        )
 
     if history:
         messages.extend(history)
 
-    messages.append({
-        "role": "user",
-        "content": user_message
-    })
+    messages.append({"role": "user", "content": user_message})
 
     return _call_openrouter(messages)

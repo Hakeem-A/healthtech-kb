@@ -8,7 +8,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.db.session import Base, engine
 from app.models import Article, Category
-from app.services.kb_search import compose_reply, extract_keywords, extract_snippet, search_articles
+from app.services.kb_search import (
+    compose_reply,
+    extract_keywords,
+    extract_snippet,
+    search_articles,
+)
 
 
 class KBSearchUnitTests(unittest.TestCase):

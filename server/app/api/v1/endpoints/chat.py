@@ -10,7 +10,12 @@ from app.api.deps import get_db, get_current_user, require_widget_api_key
 from app.core.limiter import limiter
 from app.models.chat import ChatLog, ChatMessage
 from app.models.user import User as UserModel
-from app.services.kb_search import compose_reply, search_articles, extract_snippet, extract_keywords
+from app.services.kb_search import (
+    compose_reply,
+    search_articles,
+    extract_snippet,
+    extract_keywords,
+)
 from app.services.llm import generate_reply
 
 

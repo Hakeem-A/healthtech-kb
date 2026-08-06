@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { listArticles } from '../api/articles';
 import { useAuth } from '../context/useAuth';
 import Layout from '../components/Layout';
@@ -22,6 +22,10 @@ function StatCard({ label, value }) {
 }
 
 export default function ArticleList() {
+  const [searchParams] = useSearchParams();
+  const tagFilter = searchParams.get('tag');
+  const statusFilter = searchParams.get('status');
+
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,14 +34,15 @@ export default function ArticleList() {
   const canCreate = user && user.role === 'editor';
 
   useEffect(() => {
-    listArticles()
+    setLoading(true);
+    listArticles({ tag: tagFilter, status: statusFilter })
       .then(setArticles)
       .catch((err) => {
         console.error(err);
         setError(err.message || 'Failed to load articles');
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [tagFilter, statusFilter]);
 
   const published = articles.filter((a) => a.status === 'published').length;
   const drafts = articles.filter((a) => a.status === 'draft').length;
@@ -64,7 +69,19 @@ export default function ArticleList() {
           )}
         </div>
 
-        {!loading && !error && articles.length > 0 && (
+        {(tagFilter || statusFilter) && (
+          <div className="mb-6 flex items-center gap-2">
+            <span className="text-sm text-slate-500">Filtered by:</span>
+            <span className="text-sm font-medium bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
+              {tagFilter ? `Tag: ${tagFilter}` : `Status: ${statusFilter}`}
+            </span>
+            <Link to="/articles" className="text-sm text-slate-400 hover:text-slate-600 underline">
+              Clear
+            </Link>
+          </div>
+        )}
+
+        {!loading && !error && articles.length > 0 && !tagFilter && !statusFilter && (
           <div className="grid grid-cols-4 gap-5 mb-10">
             <StatCard label="Published" value={published} />
             <StatCard label="Drafts" value={drafts} />

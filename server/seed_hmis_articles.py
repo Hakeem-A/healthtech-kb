@@ -13,6 +13,7 @@ they don't already exist (matched by slug), so it's safe to re-run.
 Usage:
     python seed_hmis_articles.py
 """
+
 import sys
 import os
 from datetime import datetime, timezone, timedelta
@@ -303,7 +304,9 @@ def seed_hmis_articles():
 
             category = categories.get(item["category_slug"])
             if not category:
-                print(f"  Skipping '{item['title']}' -- category '{item['category_slug']}' not found")
+                print(
+                    f"  Skipping '{item['title']}' -- category '{item['category_slug']}' not found"
+                )
                 continue
 
             article = Article(
@@ -314,7 +317,8 @@ def seed_hmis_articles():
                 author_id=author.id,
                 status="published",
                 views=0,
-                created_at=datetime.now(timezone.utc) - timedelta(days=len(ARTICLES) - i),
+                created_at=datetime.now(timezone.utc)
+                - timedelta(days=len(ARTICLES) - i),
             )
             article.tags_rel = [get_or_create_tag(db, t) for t in item["tags"]]
             db.add(article)

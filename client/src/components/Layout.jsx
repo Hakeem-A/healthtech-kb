@@ -23,7 +23,7 @@ function NavItem({ to, icon, label, active }) {
 
   const inner = (
     <>
-      <Icon name={icon} className="w-5 h-5 shrink-0" />
+      <Icon name={icon} className="w-5 h-5 flex-shrink-0" />
       <span>{label}</span>
     </>
   );
@@ -52,7 +52,7 @@ function NavSection({ title, children }) {
   );
 }
 
-function SidebarForRole({ role, pathname }) {
+function SidebarForRole({ role, pathname, search }) {
   if (role === 'admin') {
     return (
       <>
@@ -61,7 +61,8 @@ function SidebarForRole({ role, pathname }) {
         </NavSection>
         <NavSection title="Admin">
           <NavItem to="/review" icon="inbox" label="Review queue" active={pathname === '/review'} />
-          <NavItem to="/analytics" icon="chart" label="Analytics" active={pathname === '/analytics'} />          <NavItem to="/users" icon="users" label="Users & roles" active={pathname.startsWith('/users')} />
+          <NavItem to="/analytics" icon="chart" label="Analytics" active={pathname === '/analytics'} />
+          <NavItem to="/users" icon="users" label="Users & roles" active={pathname.startsWith('/users')} />
           <NavItem icon="shield" label="Audit log" />
           <NavItem icon="message" label="Assistant logs" />
         </NavSection>
@@ -72,31 +73,93 @@ function SidebarForRole({ role, pathname }) {
   if (role === 'editor') {
     return (
       <NavSection title="My work">
-        <NavItem to="/articles" icon="clipboard" label="Drafts" active={pathname === '/articles'} />
-        <NavItem icon="inbox" label="In review" />
-        <NavItem icon="articles" label="Published" />
+        <NavItem
+          to="/articles"
+          icon="clipboard"
+          label="Drafts"
+          active={pathname === '/articles' && !search}
+        />
+        <NavItem
+          to="/articles?status=under_review"
+          icon="inbox"
+          label="In review"
+          active={search === '?status=under_review'}
+        />
+        <NavItem
+          to="/articles?status=published"
+          icon="articles"
+          label="Published"
+          active={search === '?status=published'}
+        />
         <NavItem icon="alertTriangle" label="Low-rated" />
       </NavSection>
     );
   }
 
+  // viewer
   return (
-    <NavSection title="Categories">
-      <NavItem to="/articles" icon="home" label="All articles" active={pathname === '/articles'} />
-      <NavItem icon="home" label="Getting started" />
-      <NavItem icon="activity" label="Patient management" />
-      <NavItem icon="activity" label="Clinical modules" />
-      <NavItem icon="dollar" label="Billing & finance" />
-      <NavItem icon="settings" label="System admin" />
-      <NavItem icon="alertTriangle" label="Troubleshooting" />
-      <NavItem icon="tag" label="Release notes" />
+    <NavSection title="Topics">
+      <NavItem
+        to="/articles"
+        icon="home"
+        label="All articles"
+        active={pathname === '/articles' && !search}
+      />
+      <NavItem
+        to="/articles?tag=registration"
+        icon="clipboard"
+        label="Registration"
+        active={search === '?tag=registration'}
+      />
+      <NavItem
+        to="/articles?tag=appointments"
+        icon="activity"
+        label="Appointments"
+        active={search === '?tag=appointments'}
+      />
+      <NavItem
+        to="/articles?tag=vitals"
+        icon="activity"
+        label="Vitals"
+        active={search === '?tag=vitals'}
+      />
+      <NavItem
+        to="/articles?tag=consultation"
+        icon="clipboard"
+        label="Consultation"
+        active={search === '?tag=consultation'}
+      />
+      <NavItem
+        to="/articles?tag=lab"
+        icon="activity"
+        label="Lab"
+        active={search === '?tag=lab'}
+      />
+      <NavItem
+        to="/articles?tag=pharmacy"
+        icon="dollar"
+        label="Pharmacy"
+        active={search === '?tag=pharmacy'}
+      />
+      <NavItem
+        to="/articles?tag=admission"
+        icon="home"
+        label="Admission"
+        active={search === '?tag=admission'}
+      />
+      <NavItem
+        to="/articles?tag=referral"
+        icon="tag"
+        label="Referrals"
+        active={search === '?tag=referral'}
+      />
     </NavSection>
   );
 }
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState('');
 
@@ -156,7 +219,7 @@ export default function Layout({ children }) {
 
       <div className="flex">
         <aside className="w-64 border-r border-slate-200 bg-white px-4 py-6 flex-shrink-0 min-h-[calc(100vh-73px)]">
-          <SidebarForRole role={user.role} pathname={pathname} />
+          <SidebarForRole role={user.role} pathname={pathname} search={search} />
         </aside>
 
         <main className="flex-1 min-w-0">{children}</main>

@@ -46,8 +46,12 @@ class ChatEndpointTests(unittest.TestCase):
             session.add(user)
             session.commit()
 
-        self.valid_api_key = settings.widget_api_keys_map.get("hmis_mock", "dev-widget-key-change-me")
-        self.jwt_token = create_access_token({"sub": "staff@test.com", "role": "viewer"})
+        self.valid_api_key = settings.widget_api_keys_map.get(
+            "hmis_mock", "dev-widget-key-change-me"
+        )
+        self.jwt_token = create_access_token(
+            {"sub": "staff@test.com", "role": "viewer"}
+        )
 
     def tearDown(self):
         Base.metadata.drop_all(bind=engine)
@@ -65,7 +69,10 @@ class ChatEndpointTests(unittest.TestCase):
         self.assertIn("Password Reset Guide", data["reply"])
 
     def test_chat_uses_llm_reply_when_available(self):
-        with patch("app.api.v1.endpoints.chat.generate_reply", return_value="This is the LLM answer"):
+        with patch(
+            "app.api.v1.endpoints.chat.generate_reply",
+            return_value="This is the LLM answer",
+        ):
             res = self.client.post(
                 "/api/v1/chat/",
                 json={"session_id": "test-sess-3", "message": "how to reset password?"},
