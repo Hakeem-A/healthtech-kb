@@ -1,7 +1,11 @@
 import { api } from './client';
 
-export function listArticles() {
-  return api.get('/articles/');
+export function listArticles({ tag, status } = {}) {
+  const params = new URLSearchParams();
+  if (tag) params.set('tag', tag);
+  if (status) params.set('status_filter', status);
+  const qs = params.toString();
+  return api.get(`/articles/${qs ? `?${qs}` : ''}`);
 }
 
 export function getArticle(id) {
