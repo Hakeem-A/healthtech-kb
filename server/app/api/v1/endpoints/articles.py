@@ -81,11 +81,21 @@ def create_article(
 
 @router.get("/", response_model=List[ArticleListItem])
 def list_articles(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    tag: Optional[str] = None,
+    status_filter: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     query = db.query(Article)
     if current_user.role == "viewer":
         query = query.filter(Article.status == "published")
+
+    if status_filter:
+        query = query.filter(Article.status == status_filter)
+
+    if tag:
+        query = query.join(Article.tags_rel).filter(Tag.slug == tag)
+
     return query.order_by(Article.created_at.desc()).all()
 
 
