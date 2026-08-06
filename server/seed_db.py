@@ -12,6 +12,7 @@ from app.db.session import SessionLocal
 from app.models import User, Category, Article, Tag, Feedback, Media, SearchLog
 from app.core.security import hash_password
 
+
 def seed_database():
     print("Starting database seeding...")
     db = SessionLocal()
@@ -33,7 +34,7 @@ def seed_database():
                 is_active=True,
                 is_verified=True,
                 total_queries=12,
-                created_at=datetime.now(timezone.utc) - timedelta(days=30)
+                created_at=datetime.now(timezone.utc) - timedelta(days=30),
             ),
             User(
                 full_name="Nurse Amina Editor",
@@ -43,7 +44,7 @@ def seed_database():
                 is_active=True,
                 is_verified=True,
                 total_queries=5,
-                created_at=datetime.now(timezone.utc) - timedelta(days=25)
+                created_at=datetime.now(timezone.utc) - timedelta(days=25),
             ),
             User(
                 full_name="Grace Viewer",
@@ -53,8 +54,8 @@ def seed_database():
                 is_active=True,
                 is_verified=True,
                 total_queries=42,
-                created_at=datetime.now(timezone.utc) - timedelta(days=20)
-            )
+                created_at=datetime.now(timezone.utc) - timedelta(days=20),
+            ),
         ]
         db.add_all(users)
         db.commit()
@@ -72,21 +73,21 @@ def seed_database():
             slug="getting-started",
             description="Onboarding, System Access, and navigation basics.",
             icon="home",
-            sort_order=1
+            sort_order=1,
         )
         clinical_modules = Category(
             name="Clinical Modules",
             slug="clinical-modules",
             description="Workflows and user guides for clinical systems.",
             icon="activity",
-            sort_order=2
+            sort_order=2,
         )
         troubleshooting = Category(
             name="Troubleshooting",
             slug="troubleshooting",
             description="Common error codes, bug resolutions, and system diagnostics.",
             icon="alert-circle",
-            sort_order=3
+            sort_order=3,
         )
         db.add_all([getting_started, clinical_modules, troubleshooting])
         db.commit()
@@ -98,7 +99,7 @@ def seed_database():
             parent_id=getting_started.id,
             description="Setting up credentials and logging into the system.",
             icon="key",
-            sort_order=1
+            sort_order=1,
         )
         lab_workflows = Category(
             name="Laboratory Workflows",
@@ -106,7 +107,7 @@ def seed_database():
             parent_id=clinical_modules.id,
             description="Lab order entry, result validation, and printing.",
             icon="test-tube",
-            sort_order=1
+            sort_order=1,
         )
         pharmacy_sop = Category(
             name="Pharmacy Dispensing",
@@ -114,7 +115,7 @@ def seed_database():
             parent_id=clinical_modules.id,
             description="Drug inventory management and prescription fulfillment.",
             icon="package",
-            sort_order=2
+            sort_order=2,
         )
         db.add_all([login_access, lab_workflows, pharmacy_sop])
         db.commit()
@@ -126,7 +127,7 @@ def seed_database():
             Tag(name="patient", slug="patient"),
             Tag(name="pharmacy", slug="pharmacy"),
             Tag(name="error", slug="error"),
-            Tag(name="lab", slug="lab")
+            Tag(name="lab", slug="lab"),
         ]
         db.add_all(tags)
         db.commit()
@@ -170,7 +171,7 @@ If you run into issues, please escalation path in the sidebar.""",
                 status="published",
                 tags="patient, onboarding",
                 views=124,
-                created_at=datetime.now(timezone.utc) - timedelta(days=10)
+                created_at=datetime.now(timezone.utc) - timedelta(days=10),
             ),
             Article(
                 title="Pharmacy Dispensing SOP for High-Risk Meds",
@@ -197,7 +198,7 @@ Review Date: 2026-12-31""",
                 status="published",
                 tags="pharmacy",
                 views=45,
-                created_at=datetime.now(timezone.utc) - timedelta(days=5)
+                created_at=datetime.now(timezone.utc) - timedelta(days=5),
             ),
             Article(
                 title="FAQ: Accessing the Laboratory Module",
@@ -219,7 +220,7 @@ A: No, once verified, results are pushed to the clinical dashboard and cannot be
                 status="published",
                 tags="lab, onboarding",
                 views=82,
-                created_at=datetime.now(timezone.utc) - timedelta(days=8)
+                created_at=datetime.now(timezone.utc) - timedelta(days=8),
             ),
             Article(
                 title="Resolving Database Connection Error 505",
@@ -245,7 +246,7 @@ If the error persists, check whether there's a running network switch backup pro
                 status="published",
                 tags="error",
                 views=18,
-                created_at=datetime.now(timezone.utc) - timedelta(days=3)
+                created_at=datetime.now(timezone.utc) - timedelta(days=3),
             ),
             Article(
                 title="SOP: Administering Pediatric Doses",
@@ -262,8 +263,8 @@ This document is under review and is not yet approved for clinical use.
                 status="draft",
                 tags="patient",
                 views=0,
-                created_at=datetime.now(timezone.utc) - timedelta(days=1)
-            )
+                created_at=datetime.now(timezone.utc) - timedelta(days=1),
+            ),
         ]
 
         # Link tags many-to-many
@@ -280,8 +281,12 @@ This document is under review and is not yet approved for clinical use.
 
         # Retrieve articles for feedback seeding
         db_articles = db.query(Article).all()
-        article_reset = next(a for a in db_articles if a.slug == "how-to-reset-patient-record")
-        article_pharmacy = next(a for a in db_articles if a.slug == "pharmacy-dispensing-sop-high-risk")
+        article_reset = next(
+            a for a in db_articles if a.slug == "how-to-reset-patient-record"
+        )
+        article_pharmacy = next(
+            a for a in db_articles if a.slug == "pharmacy-dispensing-sop-high-risk"
+        )
 
         # 5. Seed Feedback
         print("Seeding feedback...")
@@ -291,15 +296,15 @@ This document is under review and is not yet approved for clinical use.
                 user_id=viewer_user.id,
                 rating=5,
                 comment="Extremely clear and easy to follow! Saved a lot of time on my shift.",
-                created_at=datetime.now(timezone.utc) - timedelta(days=2)
+                created_at=datetime.now(timezone.utc) - timedelta(days=2),
             ),
             Feedback(
                 article_id=article_pharmacy.id,
                 user_id=viewer_user.id,
                 rating=4,
                 comment="Very helpful guide. It would be great to add screenshots of the barcode popup.",
-                created_at=datetime.now(timezone.utc) - timedelta(days=1)
-            )
+                created_at=datetime.now(timezone.utc) - timedelta(days=1),
+            ),
         ]
         db.add_all(feedbacks)
         db.commit()
@@ -307,10 +312,30 @@ This document is under review and is not yet approved for clinical use.
         # 6. Seed Search Logs
         print("Seeding search logs...")
         search_logs = [
-            SearchLog(query="reset patient record", results_count=1, user_id=viewer_user.id, created_at=datetime.now(timezone.utc) - timedelta(hours=5)),
-            SearchLog(query="pharmacy dispensing", results_count=1, user_id=viewer_user.id, created_at=datetime.now(timezone.utc) - timedelta(hours=4)),
-            SearchLog(query="database error 505", results_count=1, user_id=viewer_user.id, created_at=datetime.now(timezone.utc) - timedelta(hours=3)),
-            SearchLog(query="invalid laboratory query", results_count=0, user_id=viewer_user.id, created_at=datetime.now(timezone.utc) - timedelta(hours=2))
+            SearchLog(
+                query="reset patient record",
+                results_count=1,
+                user_id=viewer_user.id,
+                created_at=datetime.now(timezone.utc) - timedelta(hours=5),
+            ),
+            SearchLog(
+                query="pharmacy dispensing",
+                results_count=1,
+                user_id=viewer_user.id,
+                created_at=datetime.now(timezone.utc) - timedelta(hours=4),
+            ),
+            SearchLog(
+                query="database error 505",
+                results_count=1,
+                user_id=viewer_user.id,
+                created_at=datetime.now(timezone.utc) - timedelta(hours=3),
+            ),
+            SearchLog(
+                query="invalid laboratory query",
+                results_count=0,
+                user_id=viewer_user.id,
+                created_at=datetime.now(timezone.utc) - timedelta(hours=2),
+            ),
         ]
         db.add_all(search_logs)
         db.commit()
@@ -323,6 +348,7 @@ This document is under review and is not yet approved for clinical use.
         sys.exit(1)
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     seed_database()

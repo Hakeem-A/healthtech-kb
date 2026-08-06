@@ -42,19 +42,25 @@ class ArticleEndpointTests(unittest.TestCase):
                 is_active=True,
             )
             session.add_all([self.admin, self.editor, self.viewer])
-            
+
             self.category = Category(name="General", slug="general")
             session.add(self.category)
             session.commit()
-            
+
             self.admin_id = self.admin.id
             self.editor_id = self.editor.id
             self.viewer_id = self.viewer.id
             self.cat_id = self.category.id
 
-        self.admin_token = create_access_token({"sub": "admin@test.com", "role": "admin"})
-        self.editor_token = create_access_token({"sub": "editor@test.com", "role": "editor"})
-        self.viewer_token = create_access_token({"sub": "viewer@test.com", "role": "viewer"})
+        self.admin_token = create_access_token(
+            {"sub": "admin@test.com", "role": "admin"}
+        )
+        self.editor_token = create_access_token(
+            {"sub": "editor@test.com", "role": "editor"}
+        )
+        self.viewer_token = create_access_token(
+            {"sub": "viewer@test.com", "role": "viewer"}
+        )
 
     def tearDown(self):
         Base.metadata.drop_all(bind=engine)
