@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import Icon from './icons';
@@ -14,7 +14,7 @@ function initialsFromEmail(email) {
   return email.split('@')[0].slice(0, 2).toUpperCase();
 }
 
-function NavItem({ to, icon, label, active }) {
+function NavItem({ to, icon, label, active, title }) {
   const base = 'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-lg transition-colors';
   const activeCls = active
     ? 'bg-blue-50 text-blue-700 font-medium'
@@ -29,11 +29,15 @@ function NavItem({ to, icon, label, active }) {
   );
 
   if (!to) {
-    return <span className={`${base} ${inertCls}`}>{inner}</span>;
+    return (
+      <span className={`${base} ${inertCls}`} title={title} aria-disabled="true">
+        {inner}
+      </span>
+    );
   }
 
   return (
-    <Link to={to} className={`${base} ${activeCls}`}>
+    <Link to={to} className={`${base} ${activeCls}`} aria-current={active ? 'page' : undefined} title={title}>
       {inner}
     </Link>
   );
@@ -63,8 +67,8 @@ function SidebarForRole({ role, pathname, search }) {
           <NavItem to="/review" icon="inbox" label="Review queue" active={pathname === '/review'} />
           <NavItem to="/analytics" icon="chart" label="Analytics" active={pathname === '/analytics'} />
           <NavItem to="/users" icon="users" label="Users & roles" active={pathname.startsWith('/users')} />
-          <NavItem icon="shield" label="Audit log" />
-          <NavItem icon="message" label="Assistant logs" />
+          <NavItem icon="shield" label="Audit log" title="Coming soon" />
+          <NavItem icon="message" label="Assistant logs" title="Coming soon" />
         </NavSection>
       </>
     );
@@ -91,7 +95,7 @@ function SidebarForRole({ role, pathname, search }) {
           label="Published"
           active={search === '?status=published'}
         />
-        <NavItem icon="alertTriangle" label="Low-rated" />
+        <NavItem icon="alertTriangle" label="Low-rated" title="Coming soon" />
       </NavSection>
     );
   }
@@ -162,6 +166,11 @@ export default function Layout({ children }) {
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   if (!user) return children;
 
@@ -173,15 +182,26 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10 gap-6">
-        <Link to="/articles" className="flex items-center gap-2 font-bold text-xl text-slate-900 flex-shrink-0">
-          <span className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm">
-            H
-          </span>
-          HealthTech KB
-        </Link>
+      <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            className="xl:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition"
+            aria-label="Open navigation menu"
+          >
+            <Icon name="menu" className="w-5 h-5" />
+          </button>
 
-        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xl relative">
+          <Link to="/articles" className="flex items-center gap-2 font-bold text-xl text-slate-900 flex-shrink-0">
+            <span className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm">
+              H
+            </span>
+            HealthTech KB
+          </Link>
+        </div>
+
+        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xl relative mx-auto w-full">
           <Icon
             name="search"
             className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"
@@ -189,11 +209,12 @@ export default function Layout({ children }) {
           <input
             id="global-search"
             name="global-search"
-            type="text"
+            type="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search the knowledge base…"
-            className="w-full bg-slate-100 border border-transparent rounded-lg pl-10 pr-4 py-2.5 text-base text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
+            aria-label="Search the knowledge base"
+            className="w-full bg-slate-100 border border-transparent rounded-xl pl-10 pr-4 py-3 text-base text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
           />
         </form>
 
@@ -217,12 +238,31 @@ export default function Layout({ children }) {
         </div>
       </header>
 
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-20 xl:hidden">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+          <aside className="relative z-10 w-72 h-full bg-white border-r border-slate-200 p-6 overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <div className="text-lg font-semibold text-slate-900">Menu</div>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="text-slate-500 hover:text-slate-900 rounded-lg p-2"
+                aria-label="Close navigation menu"
+              >
+                ×
+              </button>
+            </div>
+            <SidebarForRole role={user.role} pathname={pathname} search={search} />
+          </aside>
+        </div>
+      )}
+
       <div className="flex">
-        <aside className="w-64 border-r border-slate-200 bg-white px-4 py-6 flex-shrink-0 min-h-[calc(100vh-73px)]">
+        <aside className="hidden xl:block w-72 border-r border-slate-200 bg-white px-4 py-6 min-h-[calc(100vh-96px)]">
           <SidebarForRole role={user.role} pathname={pathname} search={search} />
         </aside>
 
-        <main className="flex-1 min-w-0">{children}</main>
+        <main className="flex-1 min-w-0 p-6 sm:p-8 lg:p-10">{children}</main>
       </div>
     </div>
   );

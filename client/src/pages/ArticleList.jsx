@@ -51,8 +51,8 @@ export default function ArticleList() {
 
   return (
     <Layout>
-      <div className="px-10 py-10">
-        <div className="flex justify-between items-end mb-8">
+      <div className="px-6 py-10">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-1">Articles</h1>
             <p className="text-lg text-slate-500">Browse and manage knowledge base content</p>
@@ -61,7 +61,7 @@ export default function ArticleList() {
           {canCreate && (
             <Link
               to="/articles/new"
-              className="flex items-center gap-1.5 bg-blue-600 text-white text-base font-medium rounded-lg px-5 py-3 hover:bg-blue-700 transition shadow-sm"
+              className="inline-flex items-center gap-1.5 bg-blue-600 text-white text-base font-medium rounded-xl px-5 py-3 hover:bg-blue-700 transition shadow-sm"
             >
               <Icon name="plus" className="w-4 h-4" />
               New Article
@@ -70,19 +70,19 @@ export default function ArticleList() {
         </div>
 
         {(tagFilter || statusFilter) && (
-          <div className="mb-6 flex items-center gap-2">
+          <div className="mb-6 flex flex-wrap items-center gap-2">
             <span className="text-sm text-slate-500">Filtered by:</span>
             <span className="text-sm font-medium bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
               {tagFilter ? `Tag: ${tagFilter}` : `Status: ${statusFilter}`}
             </span>
-            <Link to="/articles" className="text-sm text-slate-400 hover:text-slate-600 underline">
+            <Link to="/articles" className="text-sm text-blue-600 hover:text-blue-800 underline">
               Clear
             </Link>
           </div>
         )}
 
         {!loading && !error && articles.length > 0 && !tagFilter && !statusFilter && (
-          <div className="grid grid-cols-4 gap-5 mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-10">
             <StatCard label="Published" value={published} />
             <StatCard label="Drafts" value={drafts} />
             <StatCard label="In review" value={inReview} />
@@ -104,12 +104,12 @@ export default function ArticleList() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {articles.map((article) => (
             <Link
               key={article.id}
               to={`/articles/${article.id}`}
-              className="group block bg-white border border-slate-200 rounded-xl p-7 shadow-sm hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all duration-150"
+              className="group block bg-white border border-slate-200 rounded-3xl p-7 shadow-sm hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all duration-150"
             >
               <div className="flex justify-between items-start gap-3 mb-3">
                 <h3 className="font-semibold text-xl text-slate-900 group-hover:text-blue-700 transition-colors">

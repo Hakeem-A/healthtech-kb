@@ -39,7 +39,7 @@ def _build_reply(db: Session, message: str) -> str:
             context_parts.append(f"Title: {article.title}\nSnippet: {snippet}")
 
         context = "\n\n".join(context_parts)
-        llm_reply = generate_reply(message, context=context)
+        llm_reply = generate_reply(message, articles_for_context)
         if llm_reply:
             return llm_reply
 

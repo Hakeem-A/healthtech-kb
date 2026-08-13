@@ -152,9 +152,9 @@ export default function ArticleDetail() {
 
   return (
     <Layout>
-      <div className="px-10 py-10">
-        <div className="max-w-6xl mx-auto grid grid-cols-[1fr_320px] gap-10">
-          
+      <div className="px-6 py-10">
+        <div className="max-w-6xl mx-auto grid gap-10 xl:grid-cols-[1fr_320px]">
+            
           {/* Main column */}
           <div className="max-w-3xl">
             <Link
@@ -184,19 +184,19 @@ export default function ArticleDetail() {
             />
 
             {canEdit && (
-              <div className="flex gap-3">
-                <Link to={`/articles/${id}/edit`} className="bg-slate-800 text-white px-5 py-3 rounded-lg">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link to={`/articles/${id}/edit`} className="inline-flex items-center justify-center bg-slate-800 text-white px-5 py-3 rounded-lg hover:bg-slate-900 transition">
                   Edit
                 </Link>
-
+ 
                 {canPublish && (
-                  <button onClick={handlePublishToggle} className="bg-blue-600 text-white px-5 py-3 rounded-lg">
+                  <button onClick={handlePublishToggle} className="inline-flex items-center justify-center bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition">
                     {article.status === 'published' ? 'Archive' : 'Publish'}
                   </button>
                 )}
-
+ 
                 {canDelete && (
-                  <button onClick={handleDelete} className="bg-red-600 text-white px-5 py-3 rounded-lg">
+                  <button onClick={handleDelete} className="inline-flex items-center justify-center bg-red-600 text-white px-5 py-3 rounded-lg hover:bg-red-700 transition">
                     Delete
                   </button>
                 )}
@@ -226,14 +226,18 @@ export default function ArticleDetail() {
           </div>
 
           {/* Sidebar */}
-          <aside>
-            <div className="bg-white border rounded-xl p-5">
+          <aside className="xl:sticky xl:top-24">
+            <div className="bg-white border rounded-xl p-5 shadow-sm">
               <h2 className="font-semibold mb-3">Related articles</h2>
-              {related.map((r) => (
-                <Link key={r.id} to={`/articles/${r.id}`} className="block text-blue-600 mb-2">
-                  {r.title}
-                </Link>
-              ))}
+              {related.length > 0 ? (
+                related.map((r) => (
+                  <Link key={r.id} to={`/articles/${r.id}`} className="block text-blue-600 mb-2 hover:text-blue-800">
+                    {r.title}
+                  </Link>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500">No related articles found.</p>
+              )}
             </div>
           </aside>
 
