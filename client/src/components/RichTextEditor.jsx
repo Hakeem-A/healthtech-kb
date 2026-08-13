@@ -31,7 +31,7 @@ export default function RichTextEditor({ value, onChange }) {
     },
     editorProps: {
       attributes: {
-        class: 'prose-content min-h-[280px] px-4 py-3 focus:outline-none',
+        class: 'prose-content min-h-[500px] px-4 py-4 focus:outline-none',
       },
     },
   });
@@ -61,7 +61,7 @@ export default function RichTextEditor({ value, onChange }) {
 
   return (
     <div className="border border-slate-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
-      <div className="flex items-center gap-1 border-b border-slate-200 bg-slate-50 px-2 py-1.5 flex-wrap">
+      <div className="flex items-center gap-1 border-b border-slate-200 bg-slate-100 px-2 py-1.5 flex-wrap">
         <ToolbarButton
           label="Bold"
           active={editor.isActive('bold')}

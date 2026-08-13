@@ -47,7 +47,7 @@ function NavItem({ to, icon, label, active, title }) {
 
 function NavSection({ title, children }) {
   return (
-    <div className="mb-5">
+    <div className="mb-6">
       {title && (
         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2 px-3">
           {title}
@@ -182,9 +182,9 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-slate-200">
+      <header className="bg-slate-300 border-b border-slate-200 px-4 sm:px-6 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
@@ -215,11 +215,11 @@ export default function Layout({ children }) {
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search the knowledge base…"
             aria-label="Search the knowledge base"
-            className="w-full bg-slate-100 border border-transparent rounded-xl pl-10 pr-4 py-3 text-base text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
+            className="w-full bg-slate-100 border border-transparent rounded-xl pl-10 pr-4 py-3 text-base text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-slate-100 transition-colors"
           />
         </form>
 
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-4 flex-shrink-0">
           <span
             className={`text-xs font-semibold px-3 py-1.5 rounded-full uppercase tracking-wide ${
               ROLE_BADGE_STYLES[user.role] || 'bg-slate-100 text-slate-700'
@@ -242,7 +242,7 @@ export default function Layout({ children }) {
       {sidebarOpen && (
         <div className="fixed inset-0 z-20 xl:hidden">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <aside className="relative z-10 w-72 h-full bg-white border-r border-slate-200 p-6 overflow-y-auto shadow-2xl">
+          <aside className="relative z-10 w-72 h-full bg-slate-300 border-r border-slate-200 p-6 overflow-y-auto shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <div className="text-lg font-semibold text-slate-900">Menu</div>
               <button
@@ -259,7 +259,7 @@ export default function Layout({ children }) {
       )}
 
       <div className="flex">
-        <aside className="hidden xl:block w-72 border-r border-slate-200 bg-white px-4 py-6 min-h-[calc(100vh-96px)]">
+        <aside className="hidden xl:block w-72 border-r border-slate-200 bg-slate-300 px-4 py-6 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
           <SidebarForRole role={user.role} pathname={pathname} search={search} />
         </aside>
 

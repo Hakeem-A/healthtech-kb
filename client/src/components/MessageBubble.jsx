@@ -5,7 +5,7 @@ export default function MessageBubble({ message, onThumbClick }) {
   const isUser = sender !== 'bot';
 
   return (
-    <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
+    <div className={`flex gap-4 ${isUser ? 'flex-row-reverse' : ''}`}>
       {!isUser && (
         <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
           <Icon name="bot" className="w-5 h-5 text-slate-500" />
@@ -14,7 +14,7 @@ export default function MessageBubble({ message, onThumbClick }) {
       <div className={`max-w-[85%] rounded-xl px-4 py-3 text-sm ${
           isUser
             ? 'bg-blue-600 text-white rounded-br-none'
-            : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none'
+            : 'bg-slate-100 text-slate-800 border border-slate-200 rounded-bl-none'
         }`}
       >
         <p className="whitespace-pre-wrap">{text}</p>

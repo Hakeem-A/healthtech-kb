@@ -3,7 +3,7 @@ import Icon from './icons';
 export default function ChatHeader({ onClose }) {
   return (
     <div className="p-4 border-b border-slate-200 flex justify-between items-center">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
           <Icon name="bot" className="w-6 h-6 text-blue-600" />
         </div>

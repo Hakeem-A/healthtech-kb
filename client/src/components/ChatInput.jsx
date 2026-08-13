@@ -2,7 +2,7 @@
 
 export default function ChatInput({ input, setInput, handleSend, sending }) {
   return (
-    <form onSubmit={handleSend} className="p-4 border-t border-slate-200 flex items-center gap-3">
+    <form onSubmit={handleSend} className="p-4 border-t border-slate-200 flex items-center gap-4">
       <input
         id="chat-message"
         name="chat-message"

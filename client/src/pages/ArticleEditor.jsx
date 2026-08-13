@@ -20,7 +20,7 @@ export default function ArticleEditor() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [status, setStatus] = useState('draft');
+  const [status, setStatus] = useState('under_review');
   const [selectedTagIds, setSelectedTagIds] = useState([]);
 
   const [categories, setCategories] = useState([]);
@@ -92,7 +92,7 @@ export default function ArticleEditor() {
   if (loading) {
     return (
       <Layout>
-        <div className="p-10 text-lg text-slate-500">Loading…</div>
+        <div className="p-10 text-lg text-slate-600 leading-relaxed">Loading…</div>
       </Layout>
     );
   }
@@ -107,16 +107,16 @@ export default function ArticleEditor() {
           ← Cancel
         </Link>
 
-        <h1 className="text-3xl font-bold text-slate-900 mb-8">
+        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-8">
           {isEditMode ? 'Edit Article' : 'New Article'}
         </h1>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white border border-slate-200 rounded-xl shadow-sm p-8"
+          className="bg-slate-100 border border-slate-200 rounded-xl shadow-md p-8"
         >
           {error && (
-            <div className="mb-5 text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="mb-6 text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
               {error}
             </div>
           )}
@@ -130,7 +130,7 @@ export default function ArticleEditor() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
           {/* Category */}
@@ -141,7 +141,7 @@ export default function ArticleEditor() {
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
             required
-            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="" disabled>
               Select a category…
@@ -154,7 +154,7 @@ export default function ArticleEditor() {
           </select>
 
           {/* Tags */}
-          <fieldset className="mb-5">
+          <fieldset className="mb-6">
             <legend className="block text-base font-medium text-slate-700 mb-2">
               Tags
             </legend>
@@ -169,7 +169,7 @@ export default function ArticleEditor() {
                     className={`text-sm rounded-full px-3 py-1.5 border transition ${
                       selected
                         ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-slate-600 border-slate-300 hover:border-blue-300'
+                        : 'bg-slate-100 text-slate-600 border-slate-300 hover:border-blue-300'
                     }`}
                   >
                     {tag.name}
@@ -183,7 +183,7 @@ export default function ArticleEditor() {
           <label className="block text-base font-medium text-slate-700 mb-2">
             Content
           </label>
-          <div className="mb-5">
+          <div className="mb-6">
             <RichTextEditor value={content} onChange={setContent} />
           </div>
 
@@ -207,7 +207,7 @@ export default function ArticleEditor() {
           </select>
 
           {!canSetPublishedOrArchived && (
-            <p className="text-sm text-slate-400 mb-5">
+            <p className="text-sm text-slate-400 mb-6">
               Only admins can publish or archive articles.
             </p>
           )}

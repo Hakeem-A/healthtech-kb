@@ -14,7 +14,7 @@ const STATUS_COLORS = {
 
 function StatCard({ label, value }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl px-6 py-5 shadow-sm">
+    <div className="bg-slate-100 border border-slate-200 rounded-xl px-6 py-6 shadow-md">
       <p className="text-base text-slate-500 mb-1">{label}</p>
       <p className="text-4xl font-bold text-slate-900">{value}</p>
     </div>
@@ -53,12 +53,12 @@ export default function Analytics() {
   return (
     <Layout>
       <div className="px-10 py-10">
-        <h1 className="text-3xl font-bold text-slate-900 mb-1">Analytics</h1>
-        <p className="text-lg text-slate-500 mb-8">
+        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-1">Analytics</h1>
+        <p className="text-lg text-slate-600 leading-relaxed mb-8">
           Knowledge base performance at a glance
         </p>
 
-        {loading && <p className="text-lg text-slate-500">Loading…</p>}
+        {loading && <p className="text-lg text-slate-600 leading-relaxed">Loading…</p>}
         {error && (
           <div className="text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
             {error}
@@ -67,7 +67,7 @@ export default function Analytics() {
 
         {data && (
           <>
-            <div className="grid grid-cols-4 gap-5 mb-10">
+            <div className="grid grid-cols-4 gap-6 mb-10">
               <StatCard label="Published articles" value={data.published_count} />
               <StatCard label="Pending review" value={data.pending_review_count} />
               <StatCard label="Total views" value={data.total_views} />
@@ -78,7 +78,7 @@ export default function Analytics() {
             </div>
 
             <div className="grid grid-cols-2 gap-6 mb-6">
-              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+              <div className="bg-slate-100 border border-slate-200 rounded-xl p-6 shadow-md">
                 <h2 className="text-lg font-semibold text-slate-900 mb-4">
                   Top viewed articles
                 </h2>
@@ -103,7 +103,7 @@ export default function Analytics() {
                 )}
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+              <div className="bg-slate-100 border border-slate-200 rounded-xl p-6 shadow-md">
                 <h2 className="text-lg font-semibold text-slate-900 mb-4">
                   Article status breakdown
                 </h2>
@@ -125,7 +125,7 @@ export default function Analytics() {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+            <div className="bg-slate-100 border border-slate-200 rounded-xl p-6 shadow-md">
               <h2 className="text-lg font-semibold text-slate-900 mb-4">
                 Search activity
               </h2>

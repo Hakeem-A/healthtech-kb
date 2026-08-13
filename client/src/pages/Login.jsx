@@ -25,10 +25,10 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    <div className="min-h-screen flex items-center justify-center bg-slate-100">
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded-lg p-8 w-full max-w-sm"
+        className="bg-slate-100 shadow-md rounded-lg p-8 w-full max-w-sm"
       >
         <h1 className="text-2xl font-semibold mb-6 text-slate-800">
           HealthTech KB

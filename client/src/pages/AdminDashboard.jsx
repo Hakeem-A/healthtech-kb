@@ -57,14 +57,14 @@ const AdminDashboard = () => {
   return (
     <Layout>
       <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <h1 className="text-3xl font-bold text-slate-800 mb-6">Admin Dashboard</h1>
+        <h1 className="text-4xl font-extrabold tracking-tight text-slate-800 mb-6">Admin Dashboard</h1>
 
         {/* Audit Logs */}
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-slate-700 mb-4">Audit Logs</h2>
-          <div className="bg-white shadow rounded-lg overflow-x-auto">
+          <div className="bg-slate-100 shadow rounded-lg overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-slate-50">
+              <thead className="bg-slate-100">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actor</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Action</th>
@@ -72,7 +72,7 @@ const AdminDashboard = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Timestamp</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
+              <tbody className="bg-slate-100 divide-y divide-slate-200">
                 {auditLogs?.map((log) => (
                   <tr key={log.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{log.actor_email}</td>
@@ -89,9 +89,9 @@ const AdminDashboard = () => {
         {/* Assistant Logs */}
         <div>
           <h2 className="text-2xl font-semibold text-slate-700 mb-4">Assistant Logs</h2>
-          <div className="bg-white shadow rounded-lg overflow-x-auto">
+          <div className="bg-slate-100 shadow rounded-lg overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-slate-50">
+              <thead className="bg-slate-100">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Session ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Message</th>
@@ -99,7 +99,7 @@ const AdminDashboard = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Timestamp</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
+              <tbody className="bg-slate-100 divide-y divide-slate-200">
                 {assistantLogs?.map((log) => (
                   <tr key={log.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{log.session_id}</td>

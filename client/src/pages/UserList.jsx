@@ -61,18 +61,18 @@ export default function UserList() {
             <Link to="/articles" className="text-base text-blue-600 font-medium mb-2 inline-block hover:text-blue-800">
               ← Articles
             </Link>
-            <h1 className="text-3xl font-bold text-slate-900">Users</h1>
+            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Users</h1>
           </div>
           <Link
             to="/users/new"
-            className="flex items-center gap-1.5 bg-blue-600 text-white text-base font-medium rounded-lg px-5 py-3 hover:bg-blue-700 transition shadow-sm"
+            className="flex items-center gap-1.5 bg-blue-600 text-white text-base font-medium rounded-lg px-6 py-3 hover:bg-blue-700 transition shadow-md"
           >
             <Icon name="plus" className="w-4 h-4" />
             Add User
           </Link>
         </div>
 
-        {loading && <p className="text-lg text-slate-500">Loading…</p>}
+        {loading && <p className="text-lg text-slate-600 leading-relaxed">Loading…</p>}
         {error && (
           <div className="text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
             {error}
@@ -84,13 +84,13 @@ export default function UserList() {
             {users.map((u) => (
               <div
                 key={u.id}
-                className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex justify-between items-center"
+                className="bg-slate-100 border border-slate-200 rounded-xl p-6 shadow-md flex justify-between items-center"
               >
                 <div>
                   <p className="font-semibold text-lg text-slate-900">{u.full_name}</p>
                   <p className="text-base text-slate-500">{u.email}</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <span
                     className={`text-sm font-semibold px-3 py-1 rounded-full uppercase ${ROLE_STYLES[u.role] || 'bg-slate-100 text-slate-700'}`}
                   >

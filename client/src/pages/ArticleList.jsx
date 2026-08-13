@@ -14,7 +14,7 @@ const STATUS_STYLES = {
 
 function StatCard({ label, value }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl px-6 py-5 shadow-sm">
+    <div className="bg-slate-100 border border-slate-200 rounded-xl px-6 py-6 shadow-md">
       <p className="text-base text-slate-500 mb-1">{label}</p>
       <p className="text-4xl font-bold text-slate-900">{value}</p>
     </div>
@@ -54,14 +54,14 @@ export default function ArticleList() {
       <div className="px-6 py-10">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-1">Articles</h1>
-            <p className="text-lg text-slate-500">Browse and manage knowledge base content</p>
+            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-1">Articles</h1>
+            <p className="text-lg text-slate-600 leading-relaxed">Browse and manage knowledge base content</p>
           </div>
 
           {canCreate && (
             <Link
               to="/articles/new"
-              className="inline-flex items-center gap-1.5 bg-blue-600 text-white text-base font-medium rounded-xl px-5 py-3 hover:bg-blue-700 transition shadow-sm"
+              className="inline-flex items-center gap-1.5 bg-blue-600 text-white text-base font-medium rounded-xl px-6 py-3 hover:bg-blue-700 transition shadow-md"
             >
               <Icon name="plus" className="w-4 h-4" />
               New Article
@@ -82,7 +82,7 @@ export default function ArticleList() {
         )}
 
         {!loading && !error && articles.length > 0 && !tagFilter && !statusFilter && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
             <StatCard label="Published" value={published} />
             <StatCard label="Drafts" value={drafts} />
             <StatCard label="In review" value={inReview} />
@@ -90,7 +90,7 @@ export default function ArticleList() {
           </div>
         )}
 
-        {loading && <p className="text-lg text-slate-500">Loading…</p>}
+        {loading && <p className="text-lg text-slate-600 leading-relaxed">Loading…</p>}
 
         {error && (
           <div className="text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
@@ -99,19 +99,19 @@ export default function ArticleList() {
         )}
 
         {!loading && !error && articles.length === 0 && (
-          <div className="text-center py-16 bg-white border border-dashed border-slate-300 rounded-xl">
-            <p className="text-lg text-slate-500">No articles yet.</p>
+          <div className="text-center py-16 bg-slate-100 border border-dashed border-slate-300 rounded-xl">
+            <p className="text-lg text-slate-600 leading-relaxed">No articles yet.</p>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {articles.map((article) => (
             <Link
               key={article.id}
               to={`/articles/${article.id}`}
-              className="group block bg-white border border-slate-200 rounded-3xl p-7 shadow-sm hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all duration-150"
+              className="group block bg-slate-100 border border-slate-200 rounded-3xl p-8 shadow-md hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all duration-150"
             >
-              <div className="flex justify-between items-start gap-3 mb-3">
+              <div className="flex justify-between items-start gap-4 mb-4">
                 <h3 className="font-semibold text-xl text-slate-900 group-hover:text-blue-700 transition-colors">
                   {article.title}
                 </h3>

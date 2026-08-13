@@ -33,11 +33,11 @@ export default function AddUser() {
           ← Users
         </Link>
 
-        <h1 className="text-3xl font-bold text-slate-900 mb-8">Add User</h1>
+        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-8">Add User</h1>
 
-        <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl shadow-sm p-8">
+        <form onSubmit={handleSubmit} className="bg-slate-100 border border-slate-200 rounded-xl shadow-md p-8">
           {error && (
-            <div className="mb-5 text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="mb-6 text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
               {error}
             </div>
           )}
@@ -52,7 +52,7 @@ export default function AddUser() {
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             required
-            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
           <label htmlFor="email" className="block text-base font-medium text-slate-700 mb-2">
@@ -66,7 +66,7 @@ export default function AddUser() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="off"
-            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
           <label htmlFor="password" className="block text-base font-medium text-slate-700 mb-2">
@@ -80,7 +80,7 @@ export default function AddUser() {
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="new-password"
-            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
           <label htmlFor="role" className="block text-base font-medium text-slate-700 mb-2">
