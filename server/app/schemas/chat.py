@@ -30,5 +30,16 @@ class ChatHistoryResponse(BaseModel):
     messages: List[ChatMessageResponse]
 
 
+class AssistantLogResponse(BaseModel):
+    id: int
+    session_id: str
+    message: str
+    reply: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class ChatMessageFeedback(BaseModel):
     helpful: bool

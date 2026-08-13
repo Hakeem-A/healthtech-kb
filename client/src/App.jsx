@@ -13,12 +13,12 @@ import WidgetPage from './pages/WidgetPage';
 import SearchResults from './pages/SearchResults';
 import ReviewQueue from './pages/ReviewQueue';
 import Analytics from './pages/Analytics';
+import AdminDashboard from './pages/AdminDashboard';
 import Landing from './pages/Landing';
 
 
 
 function AppRoutes() {
-  const { isAuthenticated } = useAuth();
   return (
     <>
       <Routes>
@@ -28,6 +28,7 @@ function AppRoutes() {
         <Route path="/articles" element={<ProtectedRoute><ArticleList /></ProtectedRoute>} />
         <Route path="/review" element={<ProtectedRoute requireRole="admin"><ReviewQueue /></ProtectedRoute>} />
         <Route path="/analytics" element={<ProtectedRoute requireRole="admin"><Analytics /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute requireRole="admin"><AdminDashboard /></ProtectedRoute>} />
         <Route path="/articles/new" element={<ProtectedRoute requireRole="editor"><ArticleEditor /></ProtectedRoute>} />
         <Route path="/articles/:id/edit" element={<ProtectedRoute requireRole="editor"><ArticleEditor /></ProtectedRoute>} />
         <Route path="/articles/:id" element={<ProtectedRoute><ArticleDetail /></ProtectedRoute>} />

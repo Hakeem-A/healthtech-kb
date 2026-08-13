@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { sendChatMessage, getChatHistory, rateChatMessage } from '../api/chat';
 import { useAuth } from '../context/useAuth';
-import Icon from '../components/icons';
+import ChatHeader from './ChatHeader';
+import ChatHistory from './ChatHistory';
+import ChatInput from './ChatInput';
+import TypingIndicator from './TypingIndicator';
+import { Transition } from '@headlessui/react';
+import Icon from './icons';
+
 
 function getOrCreateSessionId(userEmail) {
   if (userEmail) {
@@ -120,114 +126,45 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {open && (
-        <div className="mb-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-lg shadow-xl flex flex-col overflow-hidden">
-          <div className="bg-blue-600 text-white px-4 py-3 flex justify-between items-center">
-            <div>
-              <span className="font-medium text-sm block">KB Assistant</span>
-              <span className="text-xs text-blue-100">
-                {isGuest ? "You're chatting as a guest" : 'Welcome back — continuing your conversation'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              {!isGuest && (
-                <button
-                  onClick={handleNewConversation}
-                  className="text-white/80 hover:text-white text-xs underline"
-                >
-                  New
-                </button>
-              )}
-              <button
-                onClick={() => setOpen(false)}
-                className="text-white/80 hover:text-white text-lg leading-none"
-                aria-label="Close chat"
-              >
-                ×
-              </button>
-            </div>
-          </div>
+    <div className="fixed bottom-4 right-4 z-50">
+      <Transition
+        show={open}
+        enter="transition-transform transition-opacity ease-out duration-300"
+        enterFrom="opacity-0 translate-y-4"
+        enterTo="opacity-100 translate-y-0"
+        leave="transition-transform transition-opacity ease-in duration-200"
+        leaveFrom="opacity-100 translate-y-0"
+        leaveTo="opacity-0 translate-y-4"
+      >
+        <div className="mb-2 w-96 bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden">
+          <ChatHeader
+            isGuest={isGuest}
+            onNewConversation={handleNewConversation}
+            onClose={() => setOpen(false)}
+          />
 
-          <div className="flex-1 p-3 overflow-y-auto min-h-[320px] max-h-[400px] flex flex-col gap-2">
-            {loading && <p className="text-slate-500 text-sm">Loading history…</p>}
+          <ChatHistory messages={messages} loading={loading} bottomRef={bottomRef} onThumbClick={handleThumb} />
 
-            {!loading && messages.length === 0 && (
-              <p className="text-slate-400 text-sm">
-                Ask a question about the knowledge base to get started.
-              </p>
-            )}
-
-            {messages.map((m) => {
-              const isUser = m.sender !== 'bot';
-              return (
-                <div key={m.id} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
-                  <div
-                    className={`max-w-[85%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
-                      isUser ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-800'
-                    }`}
-                  >
-                    {m.message}
-                  </div>
-
-                  {!isUser && (
-                    <div className="flex gap-2 mt-1 px-1">
-                      <button
-                        onClick={() => handleThumb(m.id, true)}
-                        className={`transition-colors ${
-                          m.helpful === true ? 'text-green-600' : 'text-slate-400 hover:text-green-600'
-                        }`}
-                        aria-label="Helpful"
-                      >
-                        <Icon name="thumbsUp" className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleThumb(m.id, false)}
-                        className={`transition-colors ${
-                          m.helpful === false ? 'text-red-600' : 'text-slate-400 hover:text-red-600'
-                        }`}
-                        aria-label="Not helpful"
-                      >
-                        <Icon name="thumbsDown" className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            <div ref={bottomRef} />
-          </div>
+          {sending && <TypingIndicator />}
 
           {error && (
-            <div className="mx-3 mb-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded p-2">
+            <div className="mx-4 mb-3 text-xs text-red-700 bg-red-100 border border-red-200 rounded-md p-3">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSend} className="border-t border-slate-200 p-2 flex gap-2">
-            <input
-              id="chat-message"
-              name="chat-message"
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask a question…"
-              className="flex-1 border border-slate-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              type="submit"
-              disabled={sending || !input.trim()}
-              className="bg-blue-600 text-white text-sm rounded px-3 py-1.5 hover:bg-blue-700 disabled:opacity-50"
-            >
-              {sending ? '…' : 'Send'}
-            </button>
-          </form>
+          <ChatInput
+            input={input}
+            setInput={setInput}
+            handleSend={handleSend}
+            sending={sending}
+          />
         </div>
-      )}
+      </Transition>
 
       <button
         onClick={() => setOpen((o) => !o)}
-        className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 shadow-lg flex items-center justify-center text-2xl"
+        className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-16 h-16 shadow-lg flex items-center justify-center text-3xl"
         aria-label={open ? 'Close chat' : 'Open chat'}
       >
         {open ? '×' : '💬'}

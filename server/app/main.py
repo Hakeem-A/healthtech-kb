@@ -17,6 +17,7 @@ from app.api.v1.endpoints import (
     categories,
     tags,
     analytics,
+    admin,
 )
 from app.core.cors import DualOriginCORSMiddleware, assert_no_origin_overlap
 from app.core.limiter import limiter
@@ -43,6 +44,7 @@ app.include_router(articles.router, prefix=f"{API_PREFIX}/articles", tags=["Arti
 app.include_router(
     analytics.router, prefix=f"{API_PREFIX}/admin/analytics", tags=["Analytics"]
 )
+app.include_router(admin.router, prefix=f"{API_PREFIX}/admin", tags=["Admin"])
 app.include_router(
     categories.router, prefix=f"{API_PREFIX}/categories", tags=["Categories"]
 )
