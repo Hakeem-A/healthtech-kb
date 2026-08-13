@@ -24,6 +24,12 @@ class Settings(BaseSettings):
         "WIDGET_API_KEYS", "hmis_mock:dev-widget-key-change-me"
     )
 
+    # --- OpenRouter (LLM-backed chat replies) ---
+    OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
+    OPENROUTER_MODEL: str = os.getenv(
+        "OPENROUTER_MODEL", "meta-llama/llama-3.3-70b-instruct:free"
+    )
+
     @property
     def dashboard_origins_list(self) -> list[str]:
         return [o.strip() for o in self.DASHBOARD_ORIGINS.split(",") if o.strip()]
