@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import Icon from './icons';
 
+
+
 const ROLE_BADGE_STYLES = {
   admin: 'bg-purple-100 text-purple-800 ring-1 ring-purple-200',
   editor: 'bg-amber-100 text-amber-800 ring-1 ring-amber-200',
@@ -67,8 +69,7 @@ function SidebarForRole({ role, pathname, search }) {
           <NavItem to="/review" icon="inbox" label="Review queue" active={pathname === '/review'} />
           <NavItem to="/analytics" icon="chart" label="Analytics" active={pathname === '/analytics'} />
           <NavItem to="/users" icon="users" label="Users & roles" active={pathname.startsWith('/users')} />
-          <NavItem icon="shield" label="Audit log" title="Coming soon" />
-          <NavItem icon="message" label="Assistant logs" title="Coming soon" />
+          <NavItem to="/admin" icon="shield" label="Audit & Assistant Logs" active={pathname === '/admin'} />
         </NavSection>
       </>
     );
