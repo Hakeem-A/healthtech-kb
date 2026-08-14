@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     # "host_name:key,host_name2:key2" -- lets you revoke one integration
     # without affecting others.
     WIDGET_API_KEYS: str = os.getenv(
-        "WIDGET_API_KEYS", "hmis_mock:dev-widget-key-change-me"
-    )
+        "WIDGET_API_KEYS", ""
+        )
 
     # --- OpenRouter (LLM-backed chat replies) ---
     OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
