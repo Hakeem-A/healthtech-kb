@@ -21,8 +21,6 @@ Your job:
 
 Rules:
 - Use the provided context if available
-- If context is weak, still answer helpfully using general knowledge
-- Be conversational, not robotic
 - Give clear steps when explaining processes
 - Do NOT say "based on the context"
 - If unsure, ask a follow-up question
@@ -40,7 +38,7 @@ def _call_openrouter(messages: list[dict]) -> str:
         raise RuntimeError("OPENROUTER_API_KEY is not configured")
 
     payload = {
-        "model": os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini"),
+        "model": os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-chat-v3.1:free"),
         "messages": messages,
         "temperature": 0.5,
     }

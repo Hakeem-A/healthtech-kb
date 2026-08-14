@@ -72,10 +72,6 @@ The backend entrypoint is [server/app/main.py](file:///home/abdi/Desktop/healtht
 4. **Database Configuration**:
    Create a PostgreSQL database and user, then set the connection string in a `.env` file in `server/`:
 
-```bash
-   DATABASE_URL=postgresql://kb_user:kb_pass@localhost:5432/kb_db
-```
-
 (No trailing comments on the same line as the value — `python-dotenv` only treats `#` as a comment starter when preceded by whitespace.)
 
 5. **Run Database Migrations**:

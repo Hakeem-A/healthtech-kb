@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # --- OpenRouter (LLM-backed chat replies) ---
     OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
     OPENROUTER_MODEL: str = os.getenv(
-        "OPENROUTER_MODEL", "meta-llama/llama-3.3-70b-instruct:free"
+        "OPENROUTER_MODEL", "deepseek/deepseek-chat-v3.1:free"
     )
 
     @property

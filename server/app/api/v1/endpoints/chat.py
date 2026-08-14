@@ -1,4 +1,3 @@
-from contextlib import suppress
 from typing import Optional
 from datetime import datetime, timezone
 
@@ -10,14 +9,7 @@ from app.api.deps import get_db, get_current_user, require_widget_api_key
 from app.core.limiter import limiter
 from app.models.chat import ChatLog, ChatMessage
 from app.models.user import User as UserModel
-from app.services.kb_search import (
-    compose_reply,
-    search_articles,
-    extract_snippet,
-    extract_keywords,
-)
-from app.services.llm import generate_reply
-
+from app.services.kb_search import compose_reply
 
 from app.schemas.chat import (
     ChatHistoryResponse,
@@ -26,24 +18,6 @@ from app.schemas.chat import (
 )
 
 router = APIRouter()
-
-
-def _build_reply(db: Session, message: str) -> str:
-    with suppress(Exception):
-        keywords = extract_keywords(message)
-        results = search_articles(db, message, limit=3)
-
-        context_parts = []
-        for article, _ in results:
-            snippet = extract_snippet(str(article.content), keywords)
-            context_parts.append(f"Title: {article.title}\nSnippet: {snippet}")
-
-        context = "\n\n".join(context_parts)
-        llm_reply = generate_reply(message, context)
-        if llm_reply:
-            return llm_reply
-
-    return compose_reply(db, message)
 
 
 class FeedbackRequest(BaseModel):
@@ -130,7 +104,13 @@ def send_chat_message(
 ):
     log = _find_or_create_log(db, caller, payload.session_id, payload.widget_source)
 
-    reply_text = _build_reply(db, payload.message)
+    # Single reply path: compose_reply is the only entry point, and it
+    # internally attempts an LLM-synthesized answer strictly grounded in
+    # retrieved KB articles (via llm_client.generate_grounded_reply),
+    # falling back to the deterministic template reply if the LLM is
+    # unavailable or its output looks ungrounded. There must be no other
+    # code path that can generate a reply outside this function.
+    reply_text = compose_reply(db, payload.message)
 
     if log is not None:
         sender_label = "hmis_widget" if caller.widget_host else "dashboard_user"
@@ -217,13 +197,3 @@ def give_feedback(
     db.commit()
 
     return {"status": "ok"}
-
-
-@router.post("/chat")
-def chat(payload: dict):
-    user_message = payload.get("message")
-    context = payload.get("context", "")
-
-    reply = generate_reply(user_message, context)
-
-    return {"reply": reply}
