@@ -90,7 +90,7 @@ export default function WidgetPage() {
   return (
     <div className="fixed bottom-4 right-4">
       {open && (
-        <div className="mb-3 w-80 bg-white border border-slate-200 rounded-lg shadow-xl flex flex-col overflow-hidden">
+        <div className="mb-4 w-80 bg-slate-100 border border-slate-200 rounded-lg shadow-xl flex flex-col overflow-hidden">
           <div className="bg-blue-600 text-white px-4 py-3 flex justify-between items-center">
             <span className="font-medium text-sm">KB Assistant</span>
             <button

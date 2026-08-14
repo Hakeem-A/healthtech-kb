@@ -70,7 +70,7 @@ export default function SearchResults() {
         <h1 className="text-2xl font-bold text-slate-900 mb-1">
           Search results
         </h1>
-        <p className="text-lg text-slate-500 mb-8">
+        <p className="text-lg text-slate-600 leading-relaxed mb-8">
           {q ? (
             <>
               Showing results for <span className="font-medium text-slate-700">"{q}"</span>
@@ -80,7 +80,7 @@ export default function SearchResults() {
           )}
         </p>
 
-        {loading && <p className="text-lg text-slate-500">Searching…</p>}
+        {loading && <p className="text-lg text-slate-600 leading-relaxed">Searching…</p>}
 
         {error && (
           <div className="text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
@@ -89,7 +89,7 @@ export default function SearchResults() {
         )}
 
         {!loading && !error && q.trim() && results.length === 0 && (
-          <div className="bg-white border border-dashed border-slate-300 rounded-xl p-8 text-center">
+          <div className="bg-slate-100 border border-dashed border-slate-300 rounded-xl p-8 text-center">
             <p className="text-lg font-medium text-slate-700 mb-2">
               No results for "{q}"
             </p>
@@ -110,9 +110,9 @@ export default function SearchResults() {
             <Link
               key={r.id}
               to={`/articles/${r.id}`}
-              className="group block bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all duration-150"
+              className="group block bg-slate-100 border border-slate-200 rounded-xl p-6 shadow-md hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all duration-150"
             >
-              <div className="flex justify-between items-start gap-3 mb-2">
+              <div className="flex justify-between items-start gap-4 mb-2">
                 <h3 className="font-semibold text-lg text-slate-900 group-hover:text-blue-700 transition-colors">
                   {highlight(r.title, q)}
                 </h3>

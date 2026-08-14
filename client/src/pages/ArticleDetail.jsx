@@ -130,7 +130,7 @@ export default function ArticleDetail() {
   if (loading) {
     return (
       <Layout>
-        <div className="p-10 text-lg text-slate-500">Loading…</div>
+        <div className="p-10 text-lg text-slate-600 leading-relaxed">Loading…</div>
       </Layout>
     );
   }
@@ -153,10 +153,10 @@ export default function ArticleDetail() {
   return (
     <Layout>
       <div className="px-6 py-10">
-        <div className="max-w-6xl mx-auto grid gap-10 xl:grid-cols-[1fr_320px]">
+        <div className="max-w-7xl mx-auto grid gap-10 xl:grid-cols-[1fr_320px]">
             
           {/* Main column */}
-          <div className="max-w-3xl">
+          <div className="max-w-[850px] w-full">
             <Link
               to="/articles"
               className="text-base text-blue-600 font-medium mb-6 inline-block hover:text-blue-800"
@@ -164,39 +164,74 @@ export default function ArticleDetail() {
               ← Back to articles
             </Link>
 
-            <div className="flex justify-between items-start gap-4 mb-3">
-              <h1 className="text-3xl font-bold text-slate-900">{article.title}</h1>
-              <span className={`text-sm font-semibold px-3 py-1 rounded-full ${STATUS_STYLES[article.status]}`}>
-                {article.status}
-              </span>
-            </div>
+            <div className="mb-8 border-b border-slate-200 pb-8">
+              <div className="flex items-center gap-3 mb-4 flex-wrap">
+                <span className={`text-sm font-semibold px-3 py-1 rounded-full ${STATUS_STYLES[article.status]}`}>
+                  {article.status}
+                </span>
+              </div>
+              
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 mb-6 leading-[1.15]">
+                {article.title}
+              </h1>
 
-            <div className="flex items-center gap-4 text-base text-slate-500 mb-6 pb-6 border-b">
-              <span>{article.views} views</span>
-              <span>|</span>
-              <span>Updated {formatDate(article.updated_at)}</span>
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-4 text-sm text-slate-600">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center font-bold text-slate-700">
+                      U
+                    </div>
+                    <span>Author ID: {article.author_id || 'Unknown'}</span>
+                  </div>
+                  <span>•</span>
+                  <span>Updated {formatDate(article.updated_at)}</span>
+                  <span>•</span>
+                  <span>{article.views || 0} views</span>
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    alert('Link copied to clipboard!');
+                  }}
+                  className="flex items-center gap-2 text-sm font-medium text-slate-600 bg-slate-200 hover:bg-slate-300 px-3 py-1.5 rounded-lg transition-colors"
+                  title="Copy Link"
+                >
+                  <Icon name="clipboard" className="w-4 h-4" />
+                  Share
+                </button>
+              </div>
+
+              {article.tags && article.tags.length > 0 && (
+                <div className="flex gap-2 flex-wrap mt-6">
+                  {article.tags.map(t => (
+                    <span key={t.id} className="text-xs font-semibold text-blue-700 bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-full">
+                      #{t.name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* ✅ FIXED: Rich HTML rendering */}
             <div
-              className="bg-white border border-slate-200 rounded-xl p-7 shadow-sm mb-6 prose-content text-lg"
+              className="bg-slate-100 border border-slate-200 rounded-xl p-8 shadow-md mb-6 prose-content text-lg"
               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }}
             />
 
             {canEdit && (
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Link to={`/articles/${id}/edit`} className="inline-flex items-center justify-center bg-slate-800 text-white px-5 py-3 rounded-lg hover:bg-slate-900 transition">
+              <div className="flex flex-col gap-4 sm:flex-row">
+                <Link to={`/articles/${id}/edit`} className="inline-flex items-center justify-center bg-slate-800 text-white px-6 py-3 rounded-lg hover:bg-slate-900 transition">
                   Edit
                 </Link>
  
                 {canPublish && (
-                  <button onClick={handlePublishToggle} className="inline-flex items-center justify-center bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition">
+                  <button onClick={handlePublishToggle} className="inline-flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
                     {article.status === 'published' ? 'Archive' : 'Publish'}
                   </button>
                 )}
  
                 {canDelete && (
-                  <button onClick={handleDelete} className="inline-flex items-center justify-center bg-red-600 text-white px-5 py-3 rounded-lg hover:bg-red-700 transition">
+                  <button onClick={handleDelete} className="inline-flex items-center justify-center bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">
                     Delete
                   </button>
                 )}
@@ -205,7 +240,7 @@ export default function ArticleDetail() {
 
             {/* ✅ FIXED: Rating now inside main column */}
             {article.status === 'published' && (
-              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm mt-6">
+              <div className="bg-slate-100 border border-slate-200 rounded-xl p-6 shadow-md mt-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Was this helpful?</p>
@@ -226,9 +261,9 @@ export default function ArticleDetail() {
           </div>
 
           {/* Sidebar */}
-          <aside className="xl:sticky xl:top-24">
-            <div className="bg-white border rounded-xl p-5 shadow-sm">
-              <h2 className="font-semibold mb-3">Related articles</h2>
+          <aside className="xl:sticky xl:top-[96px] self-start space-y-6">
+            <div className="bg-slate-300 border border-slate-200 rounded-xl p-6 shadow-md">
+              <h2 className="font-semibold mb-4">Related articles</h2>
               {related.length > 0 ? (
                 related.map((r) => (
                   <Link key={r.id} to={`/articles/${r.id}`} className="block text-blue-600 mb-2 hover:text-blue-800">

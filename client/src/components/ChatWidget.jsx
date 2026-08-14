@@ -136,7 +136,7 @@ export default function ChatWidget() {
         leaveFrom="opacity-100 translate-y-0"
         leaveTo="opacity-0 translate-y-4"
       >
-        <div className="mb-2 w-96 bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden">
+        <div className="mb-2 w-96 bg-slate-100 rounded-xl shadow-2xl flex flex-col overflow-hidden">
           <ChatHeader
             isGuest={isGuest}
             onNewConversation={handleNewConversation}
@@ -148,7 +148,7 @@ export default function ChatWidget() {
           {sending && <TypingIndicator />}
 
           {error && (
-            <div className="mx-4 mb-3 text-xs text-red-700 bg-red-100 border border-red-200 rounded-md p-3">
+            <div className="mx-4 mb-4 text-xs text-red-700 bg-red-100 border border-red-200 rounded-md p-3">
               {error}
             </div>
           )}

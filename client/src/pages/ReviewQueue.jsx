@@ -77,14 +77,14 @@ export default function ReviewQueue() {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto px-8 py-10">
-        <h1 className="text-3xl font-bold text-slate-900 mb-1">Review queue</h1>
-        <p className="text-lg text-slate-500 mb-8">
+        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-1">Review queue</h1>
+        <p className="text-lg text-slate-600 leading-relaxed mb-8">
           Articles awaiting approval before publishing
         </p>
 
         
         {!loading && !error && articles.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-8">
+          <div className="bg-slate-100 border border-slate-200 rounded-xl p-6 shadow-md mb-8">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">
               Days waiting for review
             </h2>
@@ -124,7 +124,7 @@ export default function ReviewQueue() {
           </div>
         )}
 
-        {loading && <p className="text-lg text-slate-500">Loading…</p>}
+        {loading && <p className="text-lg text-slate-600 leading-relaxed">Loading…</p>}
 
         {error && (
           <div className="text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
@@ -133,8 +133,8 @@ export default function ReviewQueue() {
         )}
 
         {!loading && !error && articles.length === 0 && (
-          <div className="text-center py-16 bg-white border border-dashed border-slate-300 rounded-xl">
-            <p className="text-lg text-slate-500">
+          <div className="text-center py-16 bg-slate-100 border border-dashed border-slate-300 rounded-xl">
+            <p className="text-lg text-slate-600 leading-relaxed">
               Nothing waiting for review right now.
             </p>
           </div>
@@ -144,9 +144,9 @@ export default function ReviewQueue() {
           {articles.map((article) => (
             <div
               key={article.id}
-              className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm"
+              className="bg-slate-100 border border-slate-200 rounded-xl p-6 shadow-md"
             >
-              <div className="flex justify-between items-start gap-4 mb-3">
+              <div className="flex justify-between items-start gap-4 mb-4">
                 <Link
                   to={`/articles/${article.id}`}
                   className="font-semibold text-lg text-slate-900 hover:text-blue-700"
@@ -167,9 +167,9 @@ export default function ReviewQueue() {
                     onChange={(e) => setReason(e.target.value)}
                     placeholder="Reason for rejection…"
                     rows={3}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-base mb-3 focus:outline-none focus:ring-2 focus:ring-red-400"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-base mb-4 focus:outline-none focus:ring-2 focus:ring-red-400"
                   />
-                  <div className="flex gap-3">
+                  <div className="flex gap-4">
                     <button
                       onClick={() => handleRejectSubmit(article.id)}
                       disabled={busyId === article.id || !reason.trim()}
@@ -189,7 +189,7 @@ export default function ReviewQueue() {
                   </div>
                 </div>
               ) : (
-                <div className="flex gap-3">
+                <div className="flex gap-4">
                   <button
                     onClick={() => handleApprove(article.id)}
                     disabled={busyId === article.id}
