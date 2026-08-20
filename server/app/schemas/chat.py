@@ -3,39 +3,47 @@ from typing import List, Optional, Any
 from pydantic import BaseModel, ConfigDict
 
 
+class ChatMessage(BaseModel):
+    sender: str
+    message: str
+    timestamp: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ChatSendRequest(BaseModel):
     session_id: str
     message: str
     widget_source: Optional[str] = None
+    history: Optional[List[ChatMessage]] = None
 
 
 class RelatedArticle(BaseModel):
     id: int
     title: str
-    snippet: Optional[str] = None
-    updated_at: Optional[datetime] = None
+    snippet: str
+    last_updated: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ChatReply(BaseModel):
     reply: str
     primary_article: Optional[RelatedArticle] = None
-    related_articles: list[RelatedArticle] = []
+    related_articles: List[RelatedArticle] = []
+    status: str = "no_results"
+    confidence: str = "none"
+    explain_reason: Optional[str] = None
+    matched_keywords: List[str] = []
 
 
-class ChatSendResponse(BaseModel):
+class ChatSendResponse(ChatReply):
     session_id: str
-    reply: str
     message_id: Optional[int] = None
-    primary_article: Optional[RelatedArticle] = None
-    related_articles: list[RelatedArticle] = []
 
 
-class ChatMessageResponse(BaseModel):
+class ChatMessageResponse(ChatMessage):
     id: int
-    sender: str
-    message: str
-    timestamp: datetime
-    helpful: Optional[bool] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -52,8 +60,7 @@ class AssistantLogResponse(BaseModel):
     reply: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ChatMessageFeedback(BaseModel):

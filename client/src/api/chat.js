@@ -1,7 +1,7 @@
 import { api } from './client';
 
-export function sendChatMessage(sessionId, message) {
-  return api.post('/chat/', { session_id: sessionId, message });
+export function sendChatMessage(payload) {
+  return api.post('/chat/', payload);
 }
 
 export function getChatHistory(sessionId) {

@@ -41,6 +41,12 @@ class ChatMessage(Base):
     message = Column(Text, nullable=False)
 
     timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    helpful = Column(Boolean, nullable=True)
+
+    # Analytics fields
+    status = Column(String, nullable=True)
+    confidence = Column(String, nullable=True)
+    response_time_ms = Column(Integer, nullable=True)
+    returned_article_ids = Column(Text, nullable=True)  # Storing as JSON string
 
     chat_log = relationship("ChatLog", back_populates="messages")
-    helpful = Column(Boolean, nullable=True)

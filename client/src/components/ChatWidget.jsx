@@ -81,43 +81,53 @@ export default function ChatWidget() {
   function handleNewConversation() {
     const freshId = `user-${user?.email || 'guest'}-${Date.now()}`;
     setSessionId(freshId);
-    if (user?.email) {
-      sessionStorage.setItem(`chat_session_${user.email}`, freshId);
-    }
     setMessages([]);
-    setLoadedOnce(true);
+    setLoadedOnce(true); // Don't try to load history for a new conversation
   }
 
   async function handleSend(e) {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const userMessage = input.trim();
+    const userMessage = {
+      id: `temp-${Date.now()}`,
+      sender: 'user',
+      message: input.trim(),
+      timestamp: new Date().toISOString(),
+    };
+
+    const history = messages.slice(-5).map((msg) => ({
+      sender: msg.sender === 'dashboard_user' ? 'user' : msg.sender,
+      message: msg.message,
+      timestamp: msg.timestamp,
+    }));
+
     setInput('');
     setError(null);
     setSending(true);
-
-    setMessages((prev) => [
-      ...prev,
-      { id: `temp-${Date.now()}`, sender: 'dashboard_user', message: userMessage, timestamp: new Date().toISOString() },
-    ]);
+    setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const res = await sendChatMessage(sessionId, userMessage);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: res.message_id ?? `bot-${Date.now()}`,
-          sender: 'bot',
-          message: res.reply,
-          primary_article: res.primary_article,
-          related_articles: res.related_articles,
-          timestamp: new Date().toISOString(),
-          helpful: null,
-        },
-      ]);
+      const data = await sendChatMessage({
+        session_id: sessionId,
+        message: userMessage.message,
+        widget_source: window.location.href,
+        history,
+      });
+
+      const botMessage = {
+        id: data.message_id ?? `bot-${Date.now()}`,
+        sender: 'bot',
+        message: data.reply,
+        primary_article: data.primary_article,
+        related_articles: data.related_articles,
+        timestamp: new Date().toISOString(),
+        helpful: null,
+      };
+      setMessages((prev) => [...prev, botMessage]);
     } catch (err) {
       setError(err.message);
+      setMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));
     } finally {
       setSending(false);
     }

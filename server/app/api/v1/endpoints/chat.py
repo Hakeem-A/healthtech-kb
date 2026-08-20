@@ -104,13 +104,8 @@ def send_chat_message(
 ):
     log = _find_or_create_log(db, caller, payload.session_id, payload.widget_source)
 
-    # Single reply path: compose_reply is the only entry point, and it
-    # internally attempts an LLM-synthesized answer strictly grounded in
-    # retrieved KB articles (via llm_client.generate_grounded_reply),
-    # falling back to the deterministic template reply if the LLM is
-    # unavailable or its output looks ungrounded. There must be no other
-    # code path that can generate a reply outside this function.
-    chat_reply = compose_reply(db, payload.message)
+    # Single reply path: compose_reply is the only entry point.
+    chat_reply = compose_reply(db, payload.message, payload.history or [])
 
     if log is not None:
         sender_label = "hmis_widget" if caller.widget_host else "dashboard_user"
@@ -124,11 +119,20 @@ def send_chat_message(
         db.add(user_msg)
         db.commit()
 
+        user_msg_timestamp = user_msg.timestamp
+        if user_msg_timestamp.tzinfo is None:
+            user_msg_timestamp = user_msg_timestamp.replace(tzinfo=timezone.utc)
+
         bot_msg = ChatMessage(
             chat_log_id=log.id,
             sender="bot",
             message=chat_reply.reply,
             timestamp=datetime.now(timezone.utc),
+            # Analytics fields
+            status=chat_reply.status,
+            confidence=chat_reply.confidence,
+            response_time_ms=int((datetime.now(timezone.utc) - user_msg_timestamp).total_seconds() * 1000),
+            returned_article_ids=[a.id for a in chat_reply.related_articles],
         )
         db.add(bot_msg)
         db.commit()
@@ -140,10 +144,8 @@ def send_chat_message(
 
     return ChatSendResponse(
         session_id=payload.session_id,
-        reply=chat_reply.reply,
         message_id=message_id,
-        primary_article=chat_reply.primary_article,
-        related_articles=chat_reply.related_articles,
+        **chat_reply.dict(),
     )
 
 

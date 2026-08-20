@@ -1,12 +1,20 @@
 import logging
 import re
 from html.parser import HTMLParser
-from typing import Optional
-from sqlalchemy.orm import Session
+from dataclasses import dataclass, field
+from typing import List, Optional
+
 from sqlalchemy import or_
+from sqlalchemy.orm import Session
+
 from app.models.article import Article
-from app.services.llm_client import generate_grounded_reply, LLMUnavailable
+from app.schemas.chat import ChatMessage as ChatMessageSchema
 from app.schemas.chat import ChatReply, RelatedArticle
+from app.services.llm_client import (
+    LLMUnavailable,
+    LLMValidationError,
+    generate_grounded_reply,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -131,91 +139,133 @@ def extract_snippet(content: str, keywords: list[str], window: int = 160) -> str
     return snippet.strip() + ("…" if len(snippet) >= window else "")
 
 
-def _template_reply(results: list[tuple[Article, int]], keywords: list[str]) -> ChatReply:
-    top_article, _ = results[0]
-    snippet = extract_snippet(top_article.content, keywords)
-    reply_text = f'From "{top_article.title}": {snippet}'
+@dataclass
+class ChatContext:
+    """Encapsulates all data related to a single chat interaction."""
 
+    message: str
+    history: List[ChatMessageSchema] = field(default_factory=list)
+    retrieved_articles: list[tuple[Article, dict]] = field(default_factory=list)
+    keywords: list[str] = field(default_factory=list)
+    confidence: str = "none"
+    confidence_reason: str = ""
+
+
+def retrieve_articles(db: Session, context: ChatContext) -> None:
+    """
+    Retrieves articles from the KB based on keywords in the user's message.
+    Updates the context with retrieved articles and confidence.
+    """
+    context.keywords = extract_keywords(context.message)
+    if not context.keywords:
+        return
+
+    raw_results = search_articles(db, context.message, limit=5)
+    if not raw_results:
+        return
+
+    # Placeholder for more advanced scoring and confidence
+    context.retrieved_articles = [
+        (article, {"score": score}) for article, score in raw_results
+    ]
+    context.confidence = "medium"
+    context.confidence_reason = "Initial keyword match found."
+
+
+def generate_answer(context: ChatContext) -> str:
+    """
+    Generates a reply using the LLM, grounded in the retrieved articles.
+    Handles LLM unavailability and validation errors.
+    """
+    articles_for_context = [
+        {
+            "id": article.id,
+            "title": article.title,
+            "content": strip_html_tags(article.content),
+        }
+        for article, _ in context.retrieved_articles
+    ]
+
+    history_for_llm = [
+        {
+            "role": "assistant" if msg.sender == "bot" else "user",
+            "content": msg.message,
+        }
+        for msg in sorted(context.history, key=lambda m: m.timestamp)
+    ]
+
+    try:
+        llm_reply = generate_grounded_reply(
+            question=context.message,
+            articles=articles_for_context,
+            history=history_for_llm,
+        )
+        context.confidence = "high"
+        context.confidence_reason = "LLM successfully generated a grounded response."
+        return llm_reply
+    except (LLMUnavailable, LLMValidationError) as e:
+        logger.warning(f"LLM generation failed, falling back to template: {e}")
+        raise
+
+
+def build_response(context: ChatContext, reply_text: str, status: str) -> ChatReply:
+    """Builds the final ChatReply object for the API."""
+    if not context.retrieved_articles:
+        return ChatReply(
+            reply=reply_text,
+            status=status,
+            confidence=context.confidence,
+            explain_reason=context.confidence_reason,
+            matched_keywords=context.keywords,
+        )
+
+    top_article, _ = context.retrieved_articles[0]
     primary_article = RelatedArticle(
         id=top_article.id,
         title=top_article.title,
-        snippet=snippet,
+        snippet=extract_snippet(top_article.content, context.keywords),
         last_updated=top_article.updated_at,
     )
     related_articles = [
         RelatedArticle(
             id=a.id,
             title=a.title,
-            snippet=extract_snippet(a.content, keywords),
+            snippet=extract_snippet(a.content, context.keywords),
             last_updated=a.updated_at,
         )
-        for a, _ in results[1:]
+        for a, _ in context.retrieved_articles[1:]
     ]
 
     return ChatReply(
-        reply=reply_text, primary_article=primary_article, related_articles=related_articles
+        reply=reply_text,
+        primary_article=primary_article,
+        related_articles=related_articles,
+        status=status,
+        confidence=context.confidence,
+        explain_reason=context.confidence_reason,
+        matched_keywords=context.keywords,
     )
 
 
-def compose_reply(db: Session, message: str) -> ChatReply:
+def compose_reply(
+    db: Session, message: str, history: List[ChatMessageSchema]
+) -> ChatReply:
     """
-    Single entry point for generating a chat reply. This is the ONLY
-    function that should be called by the chat endpoint -- no other
-    code path may generate a reply, to guarantee every answer is
-    grounded in retrieved KB content.
-
-    Flow:
-      1. Search published articles for keyword matches.
-      2. If none found, say so plainly (no LLM call at all).
-      3. Otherwise, try an LLM-synthesized answer strictly grounded in
-         the retrieved articles. If the LLM is unavailable, errors, or
-         its reply looks suspiciously longer than the source material
-         (a heuristic signal of fabrication beyond the provided
-         context), fall back to the deterministic template reply.
+    Orchestrates the entire process of generating a chat reply.
     """
-    keywords = extract_keywords(message)
-    results = search_articles(db, message, limit=3)
+    context = ChatContext(message=message, history=history)
 
-    if not results:
-        return ChatReply(
-            reply=(
-                "I couldn't find anything in the knowledge base for that. "
-                "Try rephrasing, or check with a supervisor if this is urgent."
-            )
-        )
+    retrieve_articles(db, context)
 
-    articles_for_context = [
-        {
-            "id": article.id,
-            "title": article.title,
-            "content": strip_html_tags(article.content),
-            "last_updated": article.updated_at,
-        }
-        for article, _score in results
-    ]
+    if not context.retrieved_articles:
+        reply_text = "I couldn't find anything in the knowledge base for that. Try rephrasing your question."
+        return build_response(context, reply_text, status="no_results")
 
     try:
-        llm_reply = generate_grounded_reply(message, articles_for_context)
-        primary_article = RelatedArticle(
-            id=articles_for_context[0]["id"],
-            title=articles_for_context[0]["title"],
-            snippet=extract_snippet(articles_for_context[0]["content"], keywords),
-            last_updated=articles_for_context[0]["last_updated"],
+        llm_reply = generate_answer(context)
+        return build_response(context, llm_reply, status="success")
+    except (LLMUnavailable, LLMValidationError):
+        fallback_text = (
+            "I couldn't generate a direct answer, but here are some articles that might help."
         )
-        related_articles = [
-            RelatedArticle(
-                id=a["id"],
-                title=a["title"],
-                snippet=extract_snippet(a["content"], keywords),
-                last_updated=a["last_updated"],
-            )
-            for a in articles_for_context[1:]
-        ]
-        return ChatReply(
-            reply=llm_reply,
-            primary_article=primary_article,
-            related_articles=related_articles,
-        )
-    except LLMUnavailable as e:
-        logger.warning(f"LLM unavailable, falling back to template: {e}")
-        return _template_reply(results, keywords)
+        return build_response(context, fallback_text, status="fallback")

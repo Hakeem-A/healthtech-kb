@@ -42,7 +42,11 @@ class LLMUnavailable(Exception):
     pass
 
 
-def generate_grounded_reply(question: str, articles: list[dict]) -> str:
+class LLMValidationError(Exception):
+    pass
+
+
+def generate_grounded_reply(question: str, articles: list[dict], history: list = None) -> str:
     if not settings.OPENROUTER_API_KEY:
         raise LLMUnavailable("No OPENROUTER_API_KEY configured")
 
@@ -51,6 +55,11 @@ def generate_grounded_reply(question: str, articles: list[dict]) -> str:
         f"### {a['title']}\n{a['content']}" for a in articles
     )
     user_prompt = f"Articles:\n\n{context_blocks}\n\nQuestion: {question}"
+
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    if history:
+        messages.extend(history)
+    messages.append({"role": "user", "content": user_prompt})
 
     try:
         response = httpx.post(
@@ -61,10 +70,7 @@ def generate_grounded_reply(question: str, articles: list[dict]) -> str:
             },
             json={
                 "model": settings.OPENROUTER_MODEL,
-                "messages": [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_prompt},
-                ],
+                "messages": messages,
                 "temperature": 0.1,
                 "max_tokens": 200,
             },
@@ -73,8 +79,16 @@ def generate_grounded_reply(question: str, articles: list[dict]) -> str:
         response.raise_for_status()
         data = response.json()
         reply = data["choices"][0]["message"]["content"].strip()
+
+        # Deterministic guards
+        if not reply or len(reply) < 10:
+            raise LLMValidationError("Reply is too short or empty.")
+        if "according to my knowledge" in reply.lower():
+            raise LLMValidationError("Reply contains forbidden phrases.")
+
     except (httpx.HTTPError, KeyError, IndexError, ValueError) as e:
         raise LLMUnavailable(str(e)) from e
+
 
     # Heuristic grounding guard: a reply significantly longer than its
     # source material is a strong signal the model added content beyond
