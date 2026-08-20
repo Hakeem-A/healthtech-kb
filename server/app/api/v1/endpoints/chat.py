@@ -110,7 +110,7 @@ def send_chat_message(
     # falling back to the deterministic template reply if the LLM is
     # unavailable or its output looks ungrounded. There must be no other
     # code path that can generate a reply outside this function.
-    reply_text = compose_reply(db, payload.message)
+    chat_reply = compose_reply(db, payload.message)
 
     if log is not None:
         sender_label = "hmis_widget" if caller.widget_host else "dashboard_user"
@@ -127,7 +127,7 @@ def send_chat_message(
         bot_msg = ChatMessage(
             chat_log_id=log.id,
             sender="bot",
-            message=reply_text,
+            message=chat_reply.reply,
             timestamp=datetime.now(timezone.utc),
         )
         db.add(bot_msg)
@@ -140,8 +140,10 @@ def send_chat_message(
 
     return ChatSendResponse(
         session_id=payload.session_id,
-        reply=reply_text,
+        reply=chat_reply.reply,
         message_id=message_id,
+        primary_article=chat_reply.primary_article,
+        related_articles=chat_reply.related_articles,
     )
 
 

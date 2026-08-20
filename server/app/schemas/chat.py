@@ -9,10 +9,25 @@ class ChatSendRequest(BaseModel):
     widget_source: Optional[str] = None
 
 
+class RelatedArticle(BaseModel):
+    id: int
+    title: str
+    snippet: Optional[str] = None
+    updated_at: Optional[datetime] = None
+
+
+class ChatReply(BaseModel):
+    reply: str
+    primary_article: Optional[RelatedArticle] = None
+    related_articles: list[RelatedArticle] = []
+
+
 class ChatSendResponse(BaseModel):
     session_id: str
     reply: str
     message_id: Optional[int] = None
+    primary_article: Optional[RelatedArticle] = None
+    related_articles: list[RelatedArticle] = []
 
 
 class ChatMessageResponse(BaseModel):

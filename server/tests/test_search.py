@@ -60,9 +60,9 @@ class KBSearchUnitTests(unittest.TestCase):
 
     def test_compose_reply_returns_matched_article(self):
         with Session(engine) as session:
-            reply = compose_reply(session, "prescription workflow")
-            self.assertIn('From "Prescription Workflow"', reply)
-            self.assertIn("electronic prescription", reply)
+            response = compose_reply(session, "prescription workflow")
+            self.assertIn('From "Prescription Workflow"', response.reply)
+            self.assertIn("electronic prescription", response.reply)
 
 
 if __name__ == "__main__":

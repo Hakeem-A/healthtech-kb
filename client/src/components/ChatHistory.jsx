@@ -1,7 +1,7 @@
 import MessageBubble from './MessageBubble';
 import Icon from './icons';
 
-export default function ChatHistory({ messages, loading, bottomRef, onThumbClick }) {
+export default function ChatHistory({ messages, loading, bottomRef, onThumbClick, isExpanded }) {
   return (
     <div className="flex-1 p-4 overflow-y-auto min-h-[320px] max-h-[400px] flex flex-col gap-4">
       {loading && (
@@ -21,7 +21,7 @@ export default function ChatHistory({ messages, loading, bottomRef, onThumbClick
       )}
 
       {messages.map((m) => (
-        <MessageBubble key={m.id} message={m} onThumbClick={onThumbClick} />
+        <MessageBubble key={m.id} message={m} onThumbClick={onThumbClick} isExpanded={isExpanded} />
       ))}
       <div ref={bottomRef} />
     </div>

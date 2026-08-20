@@ -34,7 +34,14 @@ export default function ChatWidget() {
   const [loadedOnce, setLoadedOnce] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
+  const [isExpanded, setIsExpanded] = useState(() => {
+    return localStorage.getItem('chat_expanded') === 'true';
+  });
   const bottomRef = useRef(null);
+
+  useEffect(() => {
+    localStorage.setItem('chat_expanded', isExpanded);
+  }, [isExpanded]);
 
   useEffect(() => {
     setSessionId(getOrCreateSessionId(user?.email));
@@ -103,6 +110,8 @@ export default function ChatWidget() {
           id: res.message_id ?? `bot-${Date.now()}`,
           sender: 'bot',
           message: res.reply,
+          primary_article: res.primary_article,
+          related_articles: res.related_articles,
           timestamp: new Date().toISOString(),
           helpful: null,
         },
@@ -136,14 +145,56 @@ export default function ChatWidget() {
         leaveFrom="opacity-100 translate-y-0"
         leaveTo="opacity-0 translate-y-4"
       >
-        <div className="mb-2 w-96 bg-slate-100 rounded-xl shadow-2xl flex flex-col overflow-hidden">
-          <ChatHeader
-            isGuest={isGuest}
-            onNewConversation={handleNewConversation}
-            onClose={() => setOpen(false)}
-          />
+        <div
+          className={`mb-2 bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
+            isExpanded
+              ? 'w-[min(900px,90vw)] h-[85vh] md:w-[850px] md:h-[820px]'
+              : 'w-[450px] h-[680px]'
+          }`}
+        >
+          <header className="bg-slate-800 text-white p-4 flex justify-between items-center flex-shrink-0 border-b border-slate-700">
+            <div className="flex items-center gap-4">
+              <Icon name="logo" className="w-8 h-8" />
+              <div>
+                <h1 className="text-lg font-bold">HealthTech Assistant</h1>
+                {isGuest && (
+                  <p className="text-xs text-slate-300">Sign in to save your chat history</p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleNewConversation}
+                className="p-2 rounded-full text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                aria-label="New Conversation"
+              >
+                <Icon name="plus" className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="p-2 rounded-full text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                aria-label={isExpanded ? 'Collapse chat' : 'Expand chat'}
+                aria-expanded={isExpanded}
+              >
+                <Icon name={isExpanded ? 'arrowsPointingIn' : 'arrowsPointingOut'} className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setOpen(false)}
+                className="p-2 rounded-full text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                aria-label="Close"
+              >
+                <Icon name="close" className="w-5 h-5" />
+              </button>
+            </div>
+          </header>
 
-          <ChatHistory messages={messages} loading={loading} bottomRef={bottomRef} onThumbClick={handleThumb} />
+          <ChatHistory
+            messages={messages}
+            loading={loading}
+            bottomRef={bottomRef}
+            onThumbClick={handleThumb}
+            isExpanded={isExpanded}
+          />
 
           {sending && <TypingIndicator />}
 

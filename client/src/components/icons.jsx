@@ -17,6 +17,9 @@ const paths = {
   search: 'M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35',
   thumbsUp: 'M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3',
   thumbsDown: 'M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3zM17 2h3a2 2 0 012 2v7a2 2 0 01-2 2h-3',
+  arrowsPointingIn: 'M4 14h6v6M20 10h-6V4M14 4l6 6M4 20l6-6',
+  arrowsPointingOut: 'M10 4H4v6M20 14h-6v6M14 4l6 6M4 20l6-6',
+  document: 'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6',
 };
 
 export default function Icon({ name, className = 'w-4 h-4' }) {

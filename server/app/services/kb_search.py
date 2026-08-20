@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from app.models.article import Article
 from app.services.llm_client import generate_grounded_reply, LLMUnavailable
+from app.schemas.chat import ChatReply, RelatedArticle
 
 logger = logging.getLogger(__name__)
 
@@ -130,17 +131,33 @@ def extract_snippet(content: str, keywords: list[str], window: int = 160) -> str
     return snippet.strip() + ("…" if len(snippet) >= window else "")
 
 
-def _template_reply(results: list[tuple[Article, int]], keywords: list[str]) -> str:
+def _template_reply(results: list[tuple[Article, int]], keywords: list[str]) -> ChatReply:
     top_article, _ = results[0]
     snippet = extract_snippet(top_article.content, keywords)
-    reply = f'From "{top_article.title}": {snippet}'
-    if len(results) > 1:
-        others = ", ".join(f'"{a.title}"' for a, _ in results[1:])
-        reply += f"\n\nRelated articles: {others}"
-    return reply
+    reply_text = f'From "{top_article.title}": {snippet}'
+
+    primary_article = RelatedArticle(
+        id=top_article.id,
+        title=top_article.title,
+        snippet=snippet,
+        last_updated=top_article.updated_at,
+    )
+    related_articles = [
+        RelatedArticle(
+            id=a.id,
+            title=a.title,
+            snippet=extract_snippet(a.content, keywords),
+            last_updated=a.updated_at,
+        )
+        for a, _ in results[1:]
+    ]
+
+    return ChatReply(
+        reply=reply_text, primary_article=primary_article, related_articles=related_articles
+    )
 
 
-def compose_reply(db: Session, message: str) -> str:
+def compose_reply(db: Session, message: str) -> ChatReply:
     """
     Single entry point for generating a chat reply. This is the ONLY
     function that should be called by the chat endpoint -- no other
@@ -160,18 +177,45 @@ def compose_reply(db: Session, message: str) -> str:
     results = search_articles(db, message, limit=3)
 
     if not results:
-        return (
-            "I couldn't find anything in the knowledge base for that. "
-            "Try rephrasing, or check with a supervisor if this is urgent."
+        return ChatReply(
+            reply=(
+                "I couldn't find anything in the knowledge base for that. "
+                "Try rephrasing, or check with a supervisor if this is urgent."
+            )
         )
 
     articles_for_context = [
-        {"title": article.title, "content": strip_html_tags(article.content)}
+        {
+            "id": article.id,
+            "title": article.title,
+            "content": strip_html_tags(article.content),
+            "last_updated": article.updated_at,
+        }
         for article, _score in results
     ]
 
     try:
-        return generate_grounded_reply(message, articles_for_context)
+        llm_reply = generate_grounded_reply(message, articles_for_context)
+        primary_article = RelatedArticle(
+            id=articles_for_context[0]["id"],
+            title=articles_for_context[0]["title"],
+            snippet=extract_snippet(articles_for_context[0]["content"], keywords),
+            last_updated=articles_for_context[0]["last_updated"],
+        )
+        related_articles = [
+            RelatedArticle(
+                id=a["id"],
+                title=a["title"],
+                snippet=extract_snippet(a["content"], keywords),
+                last_updated=a["last_updated"],
+            )
+            for a in articles_for_context[1:]
+        ]
+        return ChatReply(
+            reply=llm_reply,
+            primary_article=primary_article,
+            related_articles=related_articles,
+        )
     except LLMUnavailable as e:
         logger.warning(f"LLM unavailable, falling back to template: {e}")
         return _template_reply(results, keywords)
