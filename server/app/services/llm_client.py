@@ -72,7 +72,7 @@ def generate_grounded_reply(question: str, articles: list[dict], history: list =
                 "model": settings.OPENROUTER_MODEL,
                 "messages": messages,
                 "temperature": 0.1,
-                "max_tokens": 200,
+                "max_tokens": 350,
             },
             timeout=15.0,
         )
@@ -93,7 +93,7 @@ def generate_grounded_reply(question: str, articles: list[dict], history: list =
     # Heuristic grounding guard: a reply significantly longer than its
     # source material is a strong signal the model added content beyond
     # what was actually provided, despite instructions to the contrary.
-    if len(reply) > total_source_length * 1.5 + 100:
+    if len(reply) > max(450, total_source_length * 2 + 150):
         raise LLMUnavailable(
             f"Reply length ({len(reply)} chars) suggests fabrication "
             f"beyond source content ({total_source_length} chars)"

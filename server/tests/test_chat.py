@@ -4,24 +4,39 @@ from pathlib import Path
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
+from sqlalchemy.pool import StaticPool
+from sqlalchemy.orm import sessionmaker, Session
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.core.config import settings
 from app.core.security import create_access_token, hash_password
-from app.db.session import Base, engine
+from app.db.session import Base, get_db
 from app.main import app
 from app.models import Article, Category, User
+
+test_engine = create_engine(
+    "sqlite:///:memory:",
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 
 class ChatEndpointTests(unittest.TestCase):
     def setUp(self):
-        Base.metadata.drop_all(bind=engine)
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=test_engine)
+        def override_get_db():
+            db = TestingSessionLocal()
+            try:
+                yield db
+            finally:
+                db.close()
+        app.dependency_overrides[get_db] = override_get_db
         self.client = TestClient(app)
 
-        with Session(engine) as session:
+        with TestingSessionLocal() as session:
             cat = Category(name="Support", slug="support")
             session.add(cat)
             session.commit()
@@ -54,8 +69,8 @@ class ChatEndpointTests(unittest.TestCase):
         )
 
     def tearDown(self):
-        Base.metadata.drop_all(bind=engine)
-        engine.dispose()
+        Base.metadata.drop_all(bind=test_engine)
+        app.dependency_overrides.clear()
 
     def test_widget_chat_with_valid_api_key(self):
         res = self.client.post(
@@ -70,8 +85,8 @@ class ChatEndpointTests(unittest.TestCase):
 
     def test_chat_uses_llm_reply_when_available(self):
         with patch(
-            "app.api.v1.endpoints.chat.generate_reply",
-            return_value="This is the LLM answer",
+            "app.services.kb_search.generate_grounded_reply",
+            return_value="This is the LLM answer from Password Reset Guide",
         ):
             res = self.client.post(
                 "/api/v1/chat/",
@@ -80,7 +95,9 @@ class ChatEndpointTests(unittest.TestCase):
             )
 
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.json()["reply"], "This is the LLM answer")
+        self.assertEqual(
+            res.json()["reply"], "This is the LLM answer from Password Reset Guide"
+        )
 
     def test_widget_chat_with_invalid_api_key_fails(self):
         res = self.client.post(

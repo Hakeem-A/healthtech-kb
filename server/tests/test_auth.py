@@ -3,28 +3,43 @@ import unittest
 from pathlib import Path
 
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
+from sqlalchemy.pool import StaticPool
+from sqlalchemy.orm import sessionmaker, Session
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.core.security import hash_password
-from app.db.session import Base, engine
+from app.db.session import Base, get_db
 from app.main import app
 from app.models import User
+
+test_engine = create_engine(
+    "sqlite:///:memory:",
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 
 class AuthFlowTests(unittest.TestCase):
     def setUp(self):
-        Base.metadata.drop_all(bind=engine)
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=test_engine)
+        def override_get_db():
+            db = TestingSessionLocal()
+            try:
+                yield db
+            finally:
+                db.close()
+        app.dependency_overrides[get_db] = override_get_db
         self.client = TestClient(app)
 
     def tearDown(self):
-        Base.metadata.drop_all(bind=engine)
-        engine.dispose()
+        Base.metadata.drop_all(bind=test_engine)
+        app.dependency_overrides.clear()
 
     def test_login_returns_token_for_registered_user(self):
-        with Session(engine) as session:
+        with TestingSessionLocal() as session:
             user = User(
                 full_name="Test User",
                 email="test@example.com",

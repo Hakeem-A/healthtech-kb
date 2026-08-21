@@ -1,15 +1,15 @@
 import ArticleLink from './ArticleLink';
 import Icon from './icons';
 
-export default function MessageBubble({ message, onThumbClick, isExpanded, showAvatar }) {
+export default function MessageBubble({ message, onThumbClick, isExpanded, showAvatar = true }) {
   const { id, sender, message: text, helpful, primary_article, related_articles } = message;
   const isUser = sender !== 'bot';
 
   return (
     <div className={`flex flex-col gap-2 ${isUser ? 'items-end' : 'items-start'}`}>
-      <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
+      <div className={`flex gap-3 items-end ${isUser ? 'flex-row-reverse' : ''}`}>
         {!isUser && (
-          <div className="w-8 h-8 flex-shrink-0">
+          <div className="w-8 h-8 flex-shrink-0 mb-1">
             {showAvatar && (
               <div className="w-full h-full bg-slate-200 rounded-full flex items-center justify-center">
                 <Icon name="bot" className="w-5 h-5 text-slate-500" />
@@ -21,29 +21,31 @@ export default function MessageBubble({ message, onThumbClick, isExpanded, showA
           className={`rounded-xl px-4 py-3 ${
             isUser
               ? 'bg-blue-600 text-white rounded-br-none'
-              : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none'
+              : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'
           } ${isExpanded ? 'md:max-w-2xl text-base' : 'max-w-[85%] text-sm'}`}
         >
           <p className="whitespace-pre-wrap">{text}</p>
         </div>
 
-        {!isUser && helpful !== null && (
-          <div className="flex gap-2 mt-1 px-1 self-center">
+        {!isUser && (
+          <div className="flex gap-1 mb-1 px-1 self-end items-center">
             <button
               onClick={() => onThumbClick(id, true)}
-              className={`transition-colors ${
+              className={`p-1 rounded-md transition-colors hover:bg-slate-100 ${
                 helpful === true ? 'text-green-600' : 'text-slate-400 hover:text-green-600'
               }`}
               aria-label="Helpful"
+              title="Helpful"
             >
               <Icon name="thumbsUp" className="w-4 h-4" />
             </button>
             <button
               onClick={() => onThumbClick(id, false)}
-              className={`transition-colors ${
+              className={`p-1 rounded-md transition-colors hover:bg-slate-100 ${
                 helpful === false ? 'text-red-600' : 'text-slate-400 hover:text-red-600'
               }`}
               aria-label="Not helpful"
+              title="Not helpful"
             >
               <Icon name="thumbsDown" className="w-4 h-4" />
             </button>

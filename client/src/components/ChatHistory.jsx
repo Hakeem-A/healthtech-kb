@@ -3,7 +3,7 @@ import Icon from './icons';
 
 export default function ChatHistory({ messages, loading, bottomRef, onThumbClick, isExpanded }) {
   return (
-    <div className="flex-1 p-4 overflow-y-auto min-h-[320px] max-h-[400px] flex flex-col gap-4">
+    <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-4">
       {loading && (
         <div className="flex justify-center items-center h-full">
           <p className="text-slate-500">Loading conversation...</p>

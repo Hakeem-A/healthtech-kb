@@ -1,34 +1,34 @@
-import os
-
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=str(ENV_FILE) if ENV_FILE.exists() else ".env",
+        extra="ignore",
+    )
 
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "super-secret-key-change-this")
-    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
+    SECRET_KEY: str = "super-secret-key-change-this"
+    ALGORITHM: str = "HS256"
 
     # --- CORS: dashboard origins (React client — credentialed, JWT) ---
     # comma-separated, e.g. "http://localhost:5173,https://kb-staging.example.com"
-    DASHBOARD_ORIGINS: str = os.getenv("DASHBOARD_ORIGINS", "http://localhost:5173")
+    DASHBOARD_ORIGINS: str = "http://localhost:5173"
 
     # --- CORS: widget-host origins (embedded in HMIS etc. — no credentials, API key) ---
     # comma-separated, e.g. "http://localhost:8080,https://hmis-staging.example.com"
-    WIDGET_ORIGINS: str = os.getenv("WIDGET_ORIGINS", "http://localhost:8080")
+    WIDGET_ORIGINS: str = "http://localhost:8080"
 
     # --- Widget API keys, one per embedding host app ---
     # "host_name:key,host_name2:key2" -- lets you revoke one integration
     # without affecting others.
-    WIDGET_API_KEYS: str = os.getenv(
-        "WIDGET_API_KEYS", ""
-        )
+    WIDGET_API_KEYS: str = ""
 
     # --- OpenRouter (LLM-backed chat replies) ---
-    OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
-    OPENROUTER_MODEL: str = os.getenv(
-        "OPENROUTER_MODEL", "deepseek/deepseek-chat-v3.1:free"
-    )
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_MODEL: str = "google/gemma-4-26b-a4b-it:free"
 
     @property
     def dashboard_origins_list(self) -> list[str]:

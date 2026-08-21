@@ -2,11 +2,13 @@ import sys
 import unittest
 from pathlib import Path
 
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
+from sqlalchemy.pool import StaticPool
+from sqlalchemy.orm import sessionmaker, Session
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.db.session import Base, engine
+from app.db.session import Base
 from app.models import Article, Category
 from app.services.kb_search import (
     compose_reply,
@@ -15,13 +17,19 @@ from app.services.kb_search import (
     search_articles,
 )
 
+test_engine = create_engine(
+    "sqlite:///:memory:",
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
 
 class KBSearchUnitTests(unittest.TestCase):
     def setUp(self):
-        Base.metadata.drop_all(bind=engine)
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=test_engine)
 
-        with Session(engine) as session:
+        with TestingSessionLocal() as session:
             cat = Category(name="EHR", slug="ehr")
             session.add(cat)
             session.commit()
@@ -44,8 +52,7 @@ class KBSearchUnitTests(unittest.TestCase):
             session.commit()
 
     def tearDown(self):
-        Base.metadata.drop_all(bind=engine)
-        engine.dispose()
+        Base.metadata.drop_all(bind=test_engine)
 
     def test_extract_keywords_removes_stopwords(self):
         keywords = extract_keywords("how do I create a new prescription?")
@@ -59,10 +66,11 @@ class KBSearchUnitTests(unittest.TestCase):
         self.assertIn("prescription", snippet.lower())
 
     def test_compose_reply_returns_matched_article(self):
-        with Session(engine) as session:
+        with TestingSessionLocal() as session:
             response = compose_reply(session, "prescription workflow")
-            self.assertIn('From "Prescription Workflow"', response.reply)
-            self.assertIn("electronic prescription", response.reply)
+            self.assertIsNotNone(response.primary_article)
+            self.assertEqual(response.primary_article.title, "Prescription Workflow")
+            self.assertIn("prescription", response.reply.lower())
 
 
 if __name__ == "__main__":

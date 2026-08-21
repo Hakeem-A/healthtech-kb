@@ -248,12 +248,12 @@ def build_response(context: ChatContext, reply_text: str, status: str) -> ChatRe
 
 
 def compose_reply(
-    db: Session, message: str, history: List[ChatMessageSchema]
+    db: Session, message: str, history: Optional[List[ChatMessageSchema]] = None
 ) -> ChatReply:
     """
     Orchestrates the entire process of generating a chat reply.
     """
-    context = ChatContext(message=message, history=history)
+    context = ChatContext(message=message, history=history or [])
 
     retrieve_articles(db, context)
 

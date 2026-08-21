@@ -3,23 +3,38 @@ import unittest
 from pathlib import Path
 
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
+from sqlalchemy.pool import StaticPool
+from sqlalchemy.orm import sessionmaker, Session
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.core.security import create_access_token, hash_password
-from app.db.session import Base, engine
+from app.db.session import Base, get_db
 from app.main import app
 from app.models import Article, Category, User
+
+test_engine = create_engine(
+    "sqlite:///:memory:",
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 
 class ArticleEndpointTests(unittest.TestCase):
     def setUp(self):
-        Base.metadata.drop_all(bind=engine)
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=test_engine)
+        def override_get_db():
+            db = TestingSessionLocal()
+            try:
+                yield db
+            finally:
+                db.close()
+        app.dependency_overrides[get_db] = override_get_db
         self.client = TestClient(app)
 
-        with Session(engine) as session:
+        with TestingSessionLocal() as session:
             self.admin = User(
                 full_name="Admin User",
                 email="admin@test.com",
@@ -63,8 +78,8 @@ class ArticleEndpointTests(unittest.TestCase):
         )
 
     def tearDown(self):
-        Base.metadata.drop_all(bind=engine)
-        engine.dispose()
+        Base.metadata.drop_all(bind=test_engine)
+        app.dependency_overrides.clear()
 
     def test_editor_can_create_draft_article(self):
         res = self.client.post(
@@ -97,7 +112,7 @@ class ArticleEndpointTests(unittest.TestCase):
         self.assertEqual(res.status_code, 403)
 
     def test_viewer_only_sees_published_articles(self):
-        with Session(engine) as session:
+        with TestingSessionLocal() as session:
             pub = Article(
                 title="Published Article",
                 slug="published-article",

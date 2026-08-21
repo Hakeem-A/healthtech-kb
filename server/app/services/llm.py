@@ -38,7 +38,7 @@ def _call_openrouter(messages: list[dict]) -> str:
         raise RuntimeError("OPENROUTER_API_KEY is not configured")
 
     payload = {
-        "model": os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-chat-v3.1:free"),
+        "model": os.getenv("OPENROUTER_MODEL", "google/gemma-4-26b-a4b-it:free"),
         "messages": messages,
         "temperature": 0.5,
     }

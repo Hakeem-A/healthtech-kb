@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 from datetime import datetime, timezone
 
@@ -132,7 +133,7 @@ def send_chat_message(
             status=chat_reply.status,
             confidence=chat_reply.confidence,
             response_time_ms=int((datetime.now(timezone.utc) - user_msg_timestamp).total_seconds() * 1000),
-            returned_article_ids=[a.id for a in chat_reply.related_articles],
+            returned_article_ids=json.dumps([a.id for a in chat_reply.related_articles]),
         )
         db.add(bot_msg)
         db.commit()
