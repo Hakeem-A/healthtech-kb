@@ -56,8 +56,15 @@ class ChatHistoryResponse(BaseModel):
 class AssistantLogResponse(BaseModel):
     id: int
     session_id: str
+    user_id: Optional[int] = None
+    user_email: Optional[str] = None
+    widget_source: Optional[str] = None
     message: str
     reply: str
+    status: Optional[str] = None
+    confidence: Optional[str] = None
+    helpful: Optional[bool] = None
+    response_time_ms: Optional[int] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

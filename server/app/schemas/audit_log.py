@@ -1,14 +1,15 @@
 from datetime import datetime
-from pydantic import BaseModel
+from typing import Optional
+from pydantic import BaseModel, ConfigDict
+
 
 class AuditLogResponse(BaseModel):
     id: int
-    actor_id: int
-    actor_email: str
+    actor_id: Optional[int] = None
+    actor_email: Optional[str] = "System"
     action: str
     target_type: str
-    target_id: int
+    target_id: Optional[int] = None
     timestamp: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
