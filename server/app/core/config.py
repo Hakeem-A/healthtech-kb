@@ -28,7 +28,9 @@ class Settings(BaseSettings):
 
     # --- OpenRouter (LLM-backed chat replies) ---
     OPENROUTER_API_KEY: str = ""
-    OPENROUTER_MODEL: str = "google/gemma-4-26b-a4b-it:free"
+    OPENROUTER_MODEL: str = "nvidia/nemotron-3-nano-30b-a3b:free"
+    OR_SITE_URL: str = "http://localhost:5173"
+    OR_APP_NAME: str = "healthtech-kb"
 
     @property
     def dashboard_origins_list(self) -> list[str]:

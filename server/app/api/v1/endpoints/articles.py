@@ -60,13 +60,17 @@ def create_article(
     base_slug = slugify(payload.title)
     slug = unique_slug(db, base_slug)
 
+    # When editors create new articles, they are automatically sent to under_review.
+    # Admins can set any valid status.
+    article_status = "under_review" if current_user.role == "editor" else payload.status
+
     article = Article(
         title=payload.title,
         slug=slug,
         content=payload.content,
         category_id=payload.category_id,
         author_id=current_user.id,
-        status=payload.status,
+        status=article_status,
     )
 
     if payload.tag_ids:

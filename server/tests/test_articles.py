@@ -81,7 +81,7 @@ class ArticleEndpointTests(unittest.TestCase):
         Base.metadata.drop_all(bind=test_engine)
         app.dependency_overrides.clear()
 
-    def test_editor_can_create_draft_article(self):
+    def test_editor_creation_automatically_sets_under_review(self):
         res = self.client.post(
             "/api/v1/articles/",
             json={
@@ -96,6 +96,21 @@ class ArticleEndpointTests(unittest.TestCase):
         data = res.json()
         self.assertEqual(data["title"], "Patient Onboarding Guide")
         self.assertEqual(data["slug"], "patient-onboarding-guide")
+        self.assertEqual(data["status"], "under_review")
+
+    def test_admin_can_create_article_with_custom_status(self):
+        res = self.client.post(
+            "/api/v1/articles/",
+            json={
+                "title": "Admin Created Guide",
+                "content": "Admin content.",
+                "category_id": self.cat_id,
+                "status": "draft",
+            },
+            headers={"Authorization": f"Bearer {self.admin_token}"},
+        )
+        self.assertEqual(res.status_code, 201)
+        data = res.json()
         self.assertEqual(data["status"], "draft")
 
     def test_viewer_cannot_create_article(self):

@@ -1,5 +1,6 @@
 import logging
 import re
+from datetime import datetime, timezone
 from html.parser import HTMLParser
 from dataclasses import dataclass, field
 from typing import List, Optional
@@ -197,6 +198,22 @@ def retrieve_articles(db: Session, context: ChatContext) -> None:
     context.confidence_reason = "Initial keyword match found."
 
 
+def _normalize_msg_timestamp(msg) -> datetime:
+    ts = getattr(msg, "timestamp", None)
+    if ts is None:
+        return datetime.min.replace(tzinfo=timezone.utc)
+    if isinstance(ts, str):
+        try:
+            ts = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        except Exception:
+            return datetime.min.replace(tzinfo=timezone.utc)
+    if isinstance(ts, datetime):
+        if ts.tzinfo is None:
+            return ts.replace(tzinfo=timezone.utc)
+        return ts
+    return datetime.min.replace(tzinfo=timezone.utc)
+
+
 def generate_answer(context: ChatContext) -> str:
     """
     Generates a reply using the LLM, grounded in the retrieved articles.
@@ -216,7 +233,7 @@ def generate_answer(context: ChatContext) -> str:
             "role": "assistant" if msg.sender == "bot" else "user",
             "content": msg.message,
         }
-        for msg in sorted(context.history, key=lambda m: m.timestamp)
+        for msg in sorted(context.history, key=_normalize_msg_timestamp)
     ]
 
     try:

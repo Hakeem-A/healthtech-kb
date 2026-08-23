@@ -123,6 +123,27 @@ class ChatEndpointTests(unittest.TestCase):
         data = res.json()
         self.assertEqual(len(data["messages"]), 2)  # User question + Bot reply
 
+    def test_chat_with_mixed_timezone_history(self):
+        history = [
+            {"sender": "user", "message": "hello", "timestamp": "2026-08-24T00:00:00Z"},
+            {"sender": "bot", "message": "hi", "timestamp": "2026-08-24T00:01:00"},
+        ]
+        with patch(
+            "app.services.kb_search.generate_grounded_reply",
+            return_value="Answer with history.",
+        ):
+            res = self.client.post(
+                "/api/v1/chat/",
+                json={
+                    "session_id": "test-sess-tz",
+                    "message": "how to reset password?",
+                    "history": history,
+                },
+                headers={"X-API-Key": self.valid_api_key},
+            )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["reply"], "Answer with history.")
+
 
 if __name__ == "__main__":
     unittest.main()

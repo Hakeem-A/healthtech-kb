@@ -46,6 +46,13 @@ class LLMValidationError(Exception):
     pass
 
 
+FALLBACK_MODELS = [
+    "nvidia/nemotron-3-nano-30b-a3b:free",
+    "nvidia/nemotron-nano-9b-v2:free",
+    "liquid/lfm-2.5-2.6b:free",
+]
+
+
 def generate_grounded_reply(question: str, articles: list[dict], history: list = None) -> str:
     if not settings.OPENROUTER_API_KEY:
         raise LLMUnavailable("No OPENROUTER_API_KEY configured")
@@ -61,34 +68,52 @@ def generate_grounded_reply(question: str, articles: list[dict], history: list =
         messages.extend(history)
     messages.append({"role": "user", "content": user_prompt})
 
-    try:
-        response = httpx.post(
-            OPENROUTER_URL,
-            headers={
-                "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": settings.OPENROUTER_MODEL,
-                "messages": messages,
-                "temperature": 0.1,
-                "max_tokens": 350,
-            },
-            timeout=15.0,
-        )
-        response.raise_for_status()
-        data = response.json()
-        reply = data["choices"][0]["message"]["content"].strip()
+    headers = {
+        "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    if getattr(settings, "OR_SITE_URL", None):
+        headers["HTTP-Referer"] = settings.OR_SITE_URL
+    if getattr(settings, "OR_APP_NAME", None):
+        headers["X-Title"] = settings.OR_APP_NAME
 
-        # Deterministic guards
-        if not reply or len(reply) < 10:
-            raise LLMValidationError("Reply is too short or empty.")
-        if "according to my knowledge" in reply.lower():
-            raise LLMValidationError("Reply contains forbidden phrases.")
+    models_to_try = [settings.OPENROUTER_MODEL] + [
+        m for m in FALLBACK_MODELS if m != settings.OPENROUTER_MODEL
+    ]
 
-    except (httpx.HTTPError, KeyError, IndexError, ValueError) as e:
-        raise LLMUnavailable(str(e)) from e
+    last_error = None
+    reply = ""
 
+    for model_name in models_to_try:
+        try:
+            response = httpx.post(
+                OPENROUTER_URL,
+                headers=headers,
+                json={
+                    "model": model_name,
+                    "messages": messages,
+                    "temperature": 0.1,
+                    "max_tokens": 350,
+                },
+                timeout=15.0,
+            )
+            response.raise_for_status()
+            data = response.json()
+            reply = data["choices"][0]["message"]["content"].strip()
+
+            # Deterministic guards
+            if not reply or len(reply) < 10:
+                raise LLMValidationError("Reply is too short or empty.")
+            if "according to my knowledge" in reply.lower():
+                raise LLMValidationError("Reply contains forbidden phrases.")
+
+            break
+        except (httpx.HTTPError, KeyError, IndexError, ValueError) as e:
+            last_error = e
+            continue
+
+    if not reply and last_error:
+        raise LLMUnavailable(str(last_error)) from last_error
 
     # Heuristic grounding guard: a reply significantly longer than its
     # source material is a strong signal the model added content beyond

@@ -194,10 +194,13 @@ export default function ArticleEditor() {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={!isEditMode && user?.role === 'editor'}
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-200 disabled:text-slate-600"
           >
-            <option value="draft">Draft</option>
             <option value="under_review">Under review</option>
+            <option value="draft" disabled={!isEditMode && user?.role === 'editor'}>
+              Draft
+            </option>
             <option value="published" disabled={!canSetPublishedOrArchived}>
               Published{!canSetPublishedOrArchived ? ' (admin only)' : ''}
             </option>
@@ -206,11 +209,15 @@ export default function ArticleEditor() {
             </option>
           </select>
 
-          {!canSetPublishedOrArchived && (
+          {!isEditMode && user?.role === 'editor' ? (
+            <p className="text-sm text-blue-600 mb-6">
+              New articles created by editors are automatically submitted for review.
+            </p>
+          ) : !canSetPublishedOrArchived ? (
             <p className="text-sm text-slate-400 mb-6">
               Only admins can publish or archive articles.
             </p>
-          )}
+          ) : null}
 
           {/* Submit */}
           <button
