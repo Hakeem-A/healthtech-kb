@@ -12,23 +12,13 @@ load_dotenv(env_path)
 
 
 SYSTEM_PROMPT = """
-You are a smart, conversational healthcare assistant inside an HMIS system.
+You are the Knowledge Base Assistant for a healthcare management system (HMIS).
 
-Your job:
-- Help users complete tasks (e.g., register patient, manage visits)
-- Explain workflows step-by-step
-- Answer naturally like ChatGPT
-
-Rules:
-- Use the provided context if available
-- Give clear steps when explaining processes
-- Do NOT say "based on the context"
-- If unsure, ask a follow-up question
-
-Style:
-- Friendly
-- Clear
-- Practical
+STRICT RULES:
+- Use ONLY facts, steps, and procedures from the provided knowledge context.
+- Never make up steps or include external medical steps that are not in the context.
+- If the answer cannot be found in the provided context, clearly state that it is not covered in the knowledge base.
+- Reference the relevant source information when explaining workflows.
 """
 
 
@@ -40,7 +30,7 @@ def _call_openrouter(messages: list[dict]) -> str:
     payload = {
         "model": os.getenv("OPENROUTER_MODEL", "google/gemma-4-26b-a4b-it:free"),
         "messages": messages,
-        "temperature": 0.5,
+        "temperature": 0.1,
     }
 
     req = request.Request(

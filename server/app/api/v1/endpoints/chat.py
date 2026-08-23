@@ -146,7 +146,7 @@ def send_chat_message(
     return ChatSendResponse(
         session_id=payload.session_id,
         message_id=message_id,
-        **chat_reply.dict(),
+        **chat_reply.model_dump(),
     )
 
 

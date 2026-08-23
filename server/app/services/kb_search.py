@@ -86,7 +86,25 @@ def strip_html_tags(content: str) -> str:
 def extract_keywords(message: str) -> list[str]:
     words = re.findall(r"[a-zA-Z0-9]+", message.lower())
     keywords = [w for w in words if w not in STOPWORDS and len(w) > 2]
-    return keywords or words
+    extended = list(keywords)
+    for w in keywords:
+        if w.endswith("ies") and len(w) > 4:
+            extended.append(w[:-3] + "y")
+        elif w.endswith("es") and len(w) > 4:
+            extended.append(w[:-2])
+        elif w.endswith("s") and len(w) > 3:
+            extended.append(w[:-1])
+        elif w.endswith("ing") and len(w) > 5:
+            extended.append(w[:-3])
+        elif w.endswith("ed") and len(w) > 4:
+            extended.append(w[:-2])
+    seen = set()
+    deduped = []
+    for w in extended:
+        if w not in seen and w not in STOPWORDS:
+            seen.add(w)
+            deduped.append(w)
+    return deduped or words
 
 
 def search_articles(
@@ -105,13 +123,21 @@ def search_articles(
         )
     ).all()
     scored: list[tuple[Article, int]] = []
+    clean_message = message.lower()
     for article in candidates:
         title_lower = article.title.lower()
-        content_lower = article.content.lower()
+        content_plain = strip_html_tags(article.content).lower()
         score = 0
+        if clean_message in title_lower:
+            score += 20
+        elif clean_message in content_plain:
+            score += 10
+
         for kw in keywords:
-            score += title_lower.count(kw) * 3
-            score += content_lower.count(kw) * 1
+            if kw in title_lower:
+                score += title_lower.count(kw) * 5
+            if kw in content_plain:
+                score += content_plain.count(kw) * 1
         if score > 0:
             scored.append((article, score))
     scored.sort(key=lambda pair: pair[1], reverse=True)
@@ -164,7 +190,6 @@ def retrieve_articles(db: Session, context: ChatContext) -> None:
     if not raw_results:
         return
 
-    # Placeholder for more advanced scoring and confidence
     context.retrieved_articles = [
         (article, {"score": score}) for article, score in raw_results
     ]
@@ -265,7 +290,7 @@ def compose_reply(
         llm_reply = generate_answer(context)
         return build_response(context, llm_reply, status="success")
     except (LLMUnavailable, LLMValidationError):
-        fallback_text = (
-            "I couldn't generate a direct answer, but here are some articles that might help."
-        )
+        top_article, _ = context.retrieved_articles[0]
+        snippet = extract_snippet(top_article.content, context.keywords)
+        fallback_text = f"According to '{top_article.title}': {snippet}"
         return build_response(context, fallback_text, status="fallback")
