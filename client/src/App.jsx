@@ -14,6 +14,7 @@ import SearchResults from './pages/SearchResults';
 import ReviewQueue from './pages/ReviewQueue';
 import Analytics from './pages/Analytics';
 import AdminDashboard from './pages/AdminDashboard';
+import LowRatedArticles from './pages/LowRatedArticles';
 import Landing from './pages/Landing';
 
 
@@ -26,6 +27,7 @@ function AppRoutes() {
         <Route path="/widget" element={<WidgetPage />} />
         <Route path="/search" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
         <Route path="/articles" element={<ProtectedRoute><ArticleList /></ProtectedRoute>} />
+        <Route path="/articles/low-rated" element={<ProtectedRoute requireRole="editor"><LowRatedArticles /></ProtectedRoute>} />
         <Route path="/review" element={<ProtectedRoute requireRole="admin"><ReviewQueue /></ProtectedRoute>} />
         <Route path="/analytics" element={<ProtectedRoute requireRole="admin"><Analytics /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute requireRole="admin"><AdminDashboard /></ProtectedRoute>} />

@@ -163,6 +163,70 @@ class ArticleEndpointTests(unittest.TestCase):
         self.assertEqual(res_editor.status_code, 200)
         self.assertEqual(len(res_editor.json()), 2)
 
+    def test_get_low_rated_articles(self):
+        from app.models.feedback import Feedback
+
+        with TestingSessionLocal() as session:
+            art_low = Article(
+                title="Low Rated Article",
+                slug="low-rated-article",
+                content="Needs improvement",
+                category_id=self.cat_id,
+                author_id=self.editor_id,
+                status="published",
+            )
+            art_high = Article(
+                title="High Rated Article",
+                slug="high-rated-article",
+                content="Excellent article",
+                category_id=self.cat_id,
+                author_id=self.editor_id,
+                status="published",
+            )
+            session.add_all([art_low, art_high])
+            session.commit()
+
+            fb1 = Feedback(
+                article_id=art_low.id,
+                user_id=self.viewer_id,
+                rating=2,
+                comment="Unclear instructions in section 2",
+            )
+            fb2 = Feedback(
+                article_id=art_low.id,
+                user_id=self.admin_id,
+                rating=1,
+                comment="Outdated protocol",
+            )
+            fb3 = Feedback(
+                article_id=art_high.id,
+                user_id=self.viewer_id,
+                rating=5,
+                comment="Very clear and helpful",
+            )
+            session.add_all([fb1, fb2, fb3])
+            session.commit()
+
+        # Editor access
+        res = self.client.get(
+            "/api/v1/articles/low-rated?max_rating=3.0",
+            headers={"Authorization": f"Bearer {self.editor_token}"},
+        )
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["title"], "Low Rated Article")
+        self.assertEqual(data[0]["average_rating"], 1.5)
+        self.assertEqual(data[0]["rating_count"], 2)
+        self.assertEqual(len(data[0]["recent_feedback"]), 2)
+
+        # Viewer should be forbidden (403)
+        res_viewer = self.client.get(
+            "/api/v1/articles/low-rated",
+            headers={"Authorization": f"Bearer {self.viewer_token}"},
+        )
+        self.assertEqual(res_viewer.status_code, 403)
+
 
 if __name__ == "__main__":
     unittest.main()

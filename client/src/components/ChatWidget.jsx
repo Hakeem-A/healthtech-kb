@@ -59,7 +59,15 @@ export default function ChatWidget() {
       setLoading(true);
       try {
         const data = await getChatHistory(sessionId);
-        if (!ignore) setMessages(data.messages);
+        const feedbackCache = JSON.parse(localStorage.getItem('chat_feedback_cache') || '{}');
+        const mergedMessages = (data.messages || []).map((m) => {
+          if (m.helpful !== null && m.helpful !== undefined) return m;
+          if (feedbackCache[m.id] !== undefined) {
+            return { ...m, helpful: feedbackCache[m.id] };
+          }
+          return m;
+        });
+        if (!ignore) setMessages(mergedMessages);
       } catch (err) {
         if (!ignore) setError(err.message);
       } finally {
@@ -134,13 +142,35 @@ export default function ChatWidget() {
   }
 
   async function handleThumb(messageId, helpful) {
+    if (!messageId) return;
+
+    let targetHelpful = helpful;
     setMessages((prev) =>
-      prev.map((m) => (m.id === messageId ? { ...m, helpful } : m))
+      prev.map((m) => {
+        if (m.id === messageId) {
+          targetHelpful = m.helpful === helpful ? null : helpful;
+          return { ...m, helpful: targetHelpful };
+        }
+        return m;
+      })
     );
+
+    // Persist in localStorage cache
     try {
-      await rateChatMessage(messageId, helpful);
-    } catch {
-      // best-effort
+      const feedbackCache = JSON.parse(localStorage.getItem('chat_feedback_cache') || '{}');
+      if (targetHelpful === null) {
+        delete feedbackCache[messageId];
+      } else {
+        feedbackCache[messageId] = targetHelpful;
+      }
+      localStorage.setItem('chat_feedback_cache', JSON.stringify(feedbackCache));
+
+      // Call backend API if it's a persisted message ID
+      if (typeof messageId === 'number' || (!String(messageId).startsWith('temp-') && !String(messageId).startsWith('bot-'))) {
+        await rateChatMessage(messageId, targetHelpful);
+      }
+    } catch (err) {
+      console.warn('Feedback rating persistence error:', err);
     }
   }
 
@@ -156,44 +186,49 @@ export default function ChatWidget() {
         leaveTo="opacity-0 translate-y-4"
       >
         <div
-          className={`mb-2 bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
+          className={`mb-3 bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 transition-all duration-300 ease-in-out ${
             isExpanded
-              ? 'w-[min(900px,90vw)] h-[85vh] md:w-[850px] md:h-[820px]'
-              : 'w-[450px] h-[680px]'
+              ? 'w-[min(720px,92vw)] h-[620px] max-h-[82vh]'
+              : 'w-[370px] sm:w-[390px] h-[520px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-6rem)]'
           }`}
         >
-          <header className="bg-slate-800 text-white p-4 flex justify-between items-center flex-shrink-0 border-b border-slate-700">
-            <div className="flex items-center gap-4">
-              <Icon name="logo" className="w-8 h-8" />
+          <header className="bg-slate-900 text-white px-4 py-3 flex justify-between items-center flex-shrink-0 border-b border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-blue-600/20 text-blue-400 rounded-lg">
+                <Icon name="message" className="w-5 h-5" />
+              </div>
               <div>
-                <h1 className="text-lg font-bold">HealthTech Assistant</h1>
+                <h1 className="text-sm font-bold text-white leading-tight">HealthTech Assistant</h1>
                 {isGuest && (
-                  <p className="text-xs text-slate-300">Sign in to save your chat history</p>
+                  <p className="text-[11px] text-slate-400">Guest Session</p>
                 )}
               </div>
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={handleNewConversation}
-                className="p-2 rounded-full text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
                 aria-label="New Conversation"
+                title="New Conversation"
               >
-                <Icon name="plus" className="w-5 h-5" />
+                <Icon name="plus" className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="p-2 rounded-full text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
                 aria-label={isExpanded ? 'Collapse chat' : 'Expand chat'}
                 aria-expanded={isExpanded}
+                title={isExpanded ? 'Collapse' : 'Expand'}
               >
-                <Icon name={isExpanded ? 'arrowsPointingIn' : 'arrowsPointingOut'} className="w-5 h-5" />
+                <Icon name={isExpanded ? 'arrowsPointingIn' : 'arrowsPointingOut'} className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setOpen(false)}
-                className="p-2 rounded-full text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
                 aria-label="Close"
+                title="Close"
               >
-                <Icon name="close" className="w-5 h-5" />
+                <Icon name="close" className="w-4 h-4" />
               </button>
             </div>
           </header>
@@ -209,7 +244,7 @@ export default function ChatWidget() {
           {sending && <TypingIndicator />}
 
           {error && (
-            <div className="mx-4 mb-4 text-xs text-red-700 bg-red-100 border border-red-200 rounded-md p-3">
+            <div className="mx-4 mb-3 text-xs text-red-700 bg-red-100 border border-red-200 rounded-lg p-2.5">
               {error}
             </div>
           )}
@@ -225,7 +260,7 @@ export default function ChatWidget() {
 
       <button
         onClick={() => setOpen((o) => !o)}
-        className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-16 h-16 shadow-lg flex items-center justify-center text-3xl"
+        className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 shadow-lg hover:shadow-xl flex items-center justify-center text-2xl transition-all duration-200 hover:scale-105 active:scale-95"
         aria-label={open ? 'Close chat' : 'Open chat'}
       >
         {open ? '×' : '💬'}

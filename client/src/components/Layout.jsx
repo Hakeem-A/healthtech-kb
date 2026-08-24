@@ -63,10 +63,11 @@ function SidebarForRole({ role, pathname, search }) {
     return (
       <>
         <NavSection>
-          <NavItem to="/articles" icon="articles" label="Articles" active={pathname.startsWith('/articles')} />
+          <NavItem to="/articles" icon="articles" label="Articles" active={pathname === '/articles' && !search} />
         </NavSection>
         <NavSection title="Admin">
           <NavItem to="/review" icon="inbox" label="Review queue" active={pathname === '/review'} />
+          <NavItem to="/articles/low-rated" icon="alertTriangle" label="Low-rated" active={pathname === '/articles/low-rated'} />
           <NavItem to="/analytics" icon="chart" label="Analytics" active={pathname === '/analytics'} />
           <NavItem to="/users" icon="users" label="Users & roles" active={pathname.startsWith('/users')} />
           <NavItem to="/admin" icon="shield" label="Audit & Assistant Logs" active={pathname === '/admin'} />
@@ -96,7 +97,12 @@ function SidebarForRole({ role, pathname, search }) {
           label="Published"
           active={search === '?status=published'}
         />
-        <NavItem icon="alertTriangle" label="Low-rated" title="Coming soon" />
+        <NavItem
+          to="/articles/low-rated"
+          icon="alertTriangle"
+          label="Low-rated"
+          active={pathname === '/articles/low-rated'}
+        />
       </NavSection>
     );
   }

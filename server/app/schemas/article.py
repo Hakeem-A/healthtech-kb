@@ -99,3 +99,32 @@ class ArticleSearchResult(BaseModel):
 
 class ArticleRejectRequest(BaseModel):
     reason: str = Field(..., min_length=1)
+
+
+class FeedbackSnippet(BaseModel):
+    id: int
+    rating: int
+    comment: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class LowRatedArticleItem(BaseModel):
+    id: int
+    title: str
+    slug: str
+    status: str
+    category_id: int
+    category_name: Optional[str] = None
+    author_id: Optional[int] = None
+    views: int
+    average_rating: float
+    rating_count: int
+    recent_feedback: List[FeedbackSnippet] = []
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True

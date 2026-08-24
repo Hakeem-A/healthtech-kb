@@ -54,3 +54,7 @@ export function submitFeedback(articleId, rating, comment) {
 export function getFeedbackSummary(articleId) {
   return api.get(`/articles/${articleId}/feedback/summary`);
 }
+
+export function listLowRatedArticles(maxRating = 3.5) {
+  return api.get(`/articles/low-rated?max_rating=${maxRating}`);
+}

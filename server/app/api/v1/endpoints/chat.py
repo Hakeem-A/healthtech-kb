@@ -22,7 +22,7 @@ router = APIRouter()
 
 
 class FeedbackRequest(BaseModel):
-    helpful: bool
+    helpful: Optional[bool] = None
 
 
 class ChatCaller:

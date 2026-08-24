@@ -7,6 +7,7 @@ class ChatMessage(BaseModel):
     sender: str
     message: str
     timestamp: datetime
+    helpful: Optional[bool] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -44,6 +45,9 @@ class ChatSendResponse(ChatReply):
 
 class ChatMessageResponse(ChatMessage):
     id: int
+    helpful: Optional[bool] = None
+    status: Optional[str] = None
+    confidence: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

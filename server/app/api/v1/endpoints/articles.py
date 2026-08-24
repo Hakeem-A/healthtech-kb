@@ -20,6 +20,8 @@ from app.schemas.article import (
     ArticleListItem,
     ArticleSearchResult,
     ArticleRejectRequest,
+    LowRatedArticleItem,
+    FeedbackSnippet,
 )
 from app.services.kb_search import search_articles, extract_keywords, extract_snippet
 
@@ -207,6 +209,73 @@ def review_queue(db: Session = Depends(get_db)):
         .order_by(Article.updated_at.asc())
         .all()
     )
+
+
+@router.get(
+    "/low-rated",
+    response_model=List[LowRatedArticleItem],
+    dependencies=[Depends(require_role_hierarchy("editor"))],
+)
+def get_low_rated_articles(
+    max_rating: float = 3.5,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Query articles with avg(Feedback.rating) <= max_rating
+    low_rated_rows = (
+        db.query(
+            Article,
+            func.avg(Feedback.rating).label("avg_rating"),
+            func.count(Feedback.id).label("rating_count"),
+        )
+        .join(Feedback, Article.id == Feedback.article_id)
+        .group_by(Article.id)
+        .having(func.avg(Feedback.rating) <= max_rating)
+        .order_by(func.avg(Feedback.rating).asc(), func.count(Feedback.id).desc())
+        .all()
+    )
+
+    items = []
+    for article, avg_rating, rating_count in low_rated_rows:
+        category_name = article.category.name if article.category else None
+
+        feedbacks = (
+            db.query(Feedback)
+            .filter(Feedback.article_id == article.id)
+            .order_by(Feedback.created_at.desc())
+            .limit(5)
+            .all()
+        )
+
+        recent_snippets = [
+            FeedbackSnippet(
+                id=fb.id,
+                rating=fb.rating,
+                comment=fb.comment,
+                created_at=fb.created_at,
+            )
+            for fb in feedbacks
+        ]
+
+        items.append(
+            LowRatedArticleItem(
+                id=article.id,
+                title=article.title,
+                slug=article.slug,
+                status=article.status,
+                category_id=article.category_id,
+                category_name=category_name,
+                author_id=article.author_id,
+                views=article.views,
+                average_rating=round(float(avg_rating), 1),
+                rating_count=rating_count,
+                recent_feedback=recent_snippets,
+                created_at=article.created_at,
+                updated_at=article.updated_at,
+            )
+        )
+
+    return items
 
 
 @router.get("/{article_id}", response_model=ArticleResponse)
