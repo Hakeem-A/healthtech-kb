@@ -15,313 +15,410 @@ from app.core.security import hash_password
 
 HMIS_ARTICLES = [
     {
-        "title": "SOP: Patient Registration",
+        "title": "SOP: Patient Registration & Identity Verification",
         "slug": "sop-patient-registration",
         "category_slug": "getting-started",
         "tags": ["registration", "how-to", "onboarding"],
         "status": "published",
-        "views": 185,
-        "days_ago": 18,
-        "content": """<h2>Purpose</h2>
-<p>Defines the standard steps for registering a new or returning patient in the HMIS before any clinical service can begin.</p>
+        "views": 245,
+        "days_ago": 25,
+        "content": """<h2>1. Purpose & Clinical Scope</h2>
+<p>This Standard Operating Procedure (SOP) standardizes the intake and biometric/OTP identity verification protocol for all patients presenting at the outpatient department (OPD), emergency room (ER), or specialized clinical units.</p>
 
-<h2>Scope / Who</h2>
-<p>Applies to doctors, clinical officers, nurses, health records officers, and data clerks at facility reception or registration desks.</p>
+<h2>2. Applicable Personnel</h2>
+<p>Applies to front-desk health records officers (HROs), admissions clerks, triage nurses, and medical officers on duty.</p>
 
-<h2>Procedure</h2>
+<h2>3. Required Equipment & Prerequisites</h2>
+<ul>
+  <li>Active HMIS credentials with <strong>FrontDesk / Records</strong> privileges.</li>
+  <li>Connected barcode/ID document scanner and SMS gateway access.</li>
+  <li>Valid patient identification document (National ID, Passport, Refugee Alien ID, or Birth Certificate).</li>
+</ul>
+
+<h2>4. Step-by-Step Intake Procedure</h2>
 <ol>
-<li>Sign in with your username and password, then verify the one-time password (OTP) sent to your registered phone. If the OTP does not arrive within 30 seconds, use <strong>Resend</strong>.</li>
-<li>From the facility dashboard, open the <strong>Registration</strong> module.</li>
-<li>Select the patient's ID type &mdash; National ID, Foreign ID, Temporary ID, Birth Certificate, Refugee ID, or Alien ID &mdash; and enter the ID number, then click <strong>Search</strong>.</li>
-<li>Confirm the correct patient (or dependent) from the results using the radio button, then click <strong>Confirm</strong>.</li>
-<li>Proceed to send an OTP to the patient's own phone number for identity verification, then enter it and click <strong>Verify</strong>.</li>
-<li>On the Patient Biodata page, select the patient's covered scheme, then route them onward: <strong>Book Appointment</strong> for a future visit, <strong>Walk-in Orders</strong> for an immediate lab/procedure/radiology order, <strong>Send to Triage</strong>, or <strong>Send to Consultation</strong>.</li>
+  <li><strong>Authentication:</strong> Sign into the HMIS portal and confirm two-factor OTP authentication.</li>
+  <li><strong>Patient Search:</strong> Select the <em>Registration & Records</em> module. Enter the patient's primary ID number or national health identifier.
+    <ul>
+      <li><em>Returning Patient:</em> Confirm demographic details, active insurance policies, and current contact numbers.</li>
+      <li><em>New Patient:</em> Select <strong>Register New Patient</strong> and capture primary biodata (Full Name, DOB, Gender, Next of Kin, Primary Phone Number).</li>
+    </ul>
+  </li>
+  <li><strong>OTP Consent & Verification:</strong> Click <strong>Send Verification OTP</strong> to the patient's registered mobile number. Enter the received 6-digit code to validate patient consent and identity.</li>
+  <li><strong>Coverage & Scheme Allocation:</strong> Select the appropriate financing mechanism (National Insurance Scheme, Private Corporate Cover, or Cash/Out-of-Pocket).</li>
+  <li><strong>Clinical Queue Routing:</strong> Route the patient based on initial presentation:
+    <ul>
+      <li><strong>Send to Triage:</strong> Routine walk-ins and general consultations.</li>
+      <li><strong>Send to Emergency / Resuscitation:</strong> Urgent, unstable, or acute trauma cases.</li>
+      <li><strong>Direct Clinic Appointment:</strong> Scheduled specialized review (e.g. Oncology, Dental, ANC).</li>
+    </ul>
+  </li>
 </ol>
 
-<h2>Notes / Edge Cases</h2>
+<blockquote>
+  <strong>⚠️ Clinical Safety Warning:</strong> In unconscious or unidentified emergency admissions, register the patient under an emergency <code>TMP-EMERGENCY-[TIMESTAMP]</code> identifier and execute immediate clinical intake without delaying triage.
+</blockquote>
+
+<h2>5. Special Considerations & Edge Cases</h2>
 <ul>
-<li>If the patient has no ID document available, use Temporary ID and update the record once proper documentation is provided.</li>
-<li>Registration cannot be completed without a successful OTP verification of the patient's own number, since this confirms consent and identity.</li>
+  <li><strong>Minors (<18 years):</strong> Must be linked to a primary guardian record with guardian National ID verification.</li>
+  <li><strong>System Offline Protocol:</strong> Utilize physical triaged intake paper registers and synchronize entries into HMIS within 2 hours of network restoration.</li>
 </ul>""",
     },
     {
-        "title": "How to Schedule an Appointment",
+        "title": "How to Schedule & Manage Outpatient Appointments",
         "slug": "how-to-schedule-appointment",
         "category_slug": "getting-started",
-        "tags": ["appointments", "how-to"],
+        "tags": ["appointments", "how-to", "records"],
         "status": "published",
-        "views": 142,
-        "days_ago": 16,
-        "content": """<h2>Overview</h2>
-<p>This guide walks through booking a patient appointment for a future visit date.</p>
+        "views": 182,
+        "days_ago": 22,
+        "content": """<h2>1. Overview</h2>
+<p>This protocol details the scheduling, rescheduling, and cancellation workflows for outpatient clinic appointments across specialized departments (Surgical, Medical, Pediatrics, Obstetrics, and Mental Health).</p>
 
-<h2>Prerequisites</h2>
-<ul>
-<li>An active HMIS login</li>
-<li>The patient must already be registered in the system</li>
-</ul>
-
-<h2>Steps</h2>
+<h2>2. Scheduling Workflow</h2>
 <ol>
-<li>Sign in and verify your OTP as usual.</li>
-<li>Search for the patient using their ID number, the same way as in registration.</li>
-<li>Once the patient is confirmed, select <strong>Book Appointment</strong> from the Patient Biodata page.</li>
-<li>Choose the appointment date, time, and relevant clinic or provider.</li>
-<li>Confirm the booking. The patient will appear in that clinic's appointment list for the selected date.</li>
+  <li>Open the <strong>Clinic Calendar</strong> module from the left navigation panel.</li>
+  <li>Filter by <strong>Department</strong> (e.g., Cardiology Outpatient) and select the designated consulting physician.</li>
+  <li>Locate an available time slot and click <strong>Book Slot</strong>.</li>
+  <li>Search for the patient record via National ID or HMIS Master Patient Index (MPI) number.</li>
+  <li>Specify the appointment type: <em>Initial Consultation</em>, <em>Post-Operative Follow-Up</em>, or <em>Chronic Disease Review</em>.</li>
+  <li>Click <strong>Confirm Booking</strong>. The system will automatically dispatch an SMS reminder notification to the patient with clinic location and visit instructions.</li>
 </ol>
 
-<h2>Troubleshooting</h2>
-<p>If the patient does not appear when searched, confirm they are registered first &mdash; appointments cannot be booked for unregistered patients.</p>
-
-<h2>Related Articles</h2>
-<p>SOP: Patient Registration, Referral Workflow</p>""",
+<h2>3. Clinic Capacity & Double-Booking Rules</h2>
+<ul>
+  <li>Standard consultation slots are allocated at <strong>15-minute intervals</strong>.</li>
+  <li>Physician overbooking requires explicit clinical lead authorization in the scheduling interface.</li>
+</ul>""",
     },
     {
-        "title": "How to Record Patient Vitals",
+        "title": "SOP: Triage & Vital Signs Recording",
         "slug": "how-to-record-vitals",
         "category_slug": "clinical-modules",
-        "tags": ["vitals", "how-to"],
+        "tags": ["vitals", "how-to", "triage"],
         "status": "published",
-        "views": 210,
-        "days_ago": 15,
-        "content": """<h2>Overview</h2>
-<p>Recording vitals is typically the first clinical step after a patient is sent to Triage from registration.</p>
+        "views": 310,
+        "days_ago": 20,
+        "content": """<h2>1. Purpose</h2>
+<p>Establishes standard clinical guidelines for measuring, documenting, and interpreting baseline vital signs to prioritize care acuity using the Modified Early Warning Score (MEWS).</p>
 
-<h2>Prerequisites</h2>
-<ul>
-<li>Patient must have completed registration and been sent to Triage</li>
-</ul>
+<h2>2. Parameters & Normal Clinical Ranges</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Parameter</th>
+      <th>Adult Range</th>
+      <th>Critical Threshold Alert</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Blood Pressure (Systolic)</strong></td>
+      <td>100 - 139 mmHg</td>
+      <td>&lt; 90 or &gt; 180 mmHg</td>
+    </tr>
+    <tr>
+      <td><strong>Heart Rate (Pulse)</strong></td>
+      <td>60 - 100 bpm</td>
+      <td>&lt; 45 or &gt; 130 bpm</td>
+    </tr>
+    <tr>
+      <td><strong>Respiratory Rate</strong></td>
+      <td>12 - 20 bpm</td>
+      <td>&lt; 8 or &gt; 28 bpm</td>
+    </tr>
+    <tr>
+      <td><strong>Oxygen Saturation (SpO2)</strong></td>
+      <td>95% - 100%</td>
+      <td>&lt; 92% (on room air)</td>
+    </tr>
+    <tr>
+      <td><strong>Temperature</strong></td>
+      <td>36.5°C - 37.5°C</td>
+      <td>&gt; 38.5°C or &lt; 35.5°C</td>
+    </tr>
+  </tbody>
+</table>
 
-<h2>Steps</h2>
+<h2>3. Recording Procedure in HMIS</h2>
 <ol>
-<li>From the Triage queue, locate the patient by name.</li>
-<li>Open their record and enter the vital signs requested (e.g. temperature, blood pressure, weight, height, pulse).</li>
-<li>Save the vitals capture. The patient's status updates and they become available for the next step in their care pathway, typically Consultation.</li>
-</ol>
-
-<h2>Troubleshooting</h2>
-<p>If a patient does not appear in the Triage queue, confirm that reception routed them to Triage (rather than directly to Consultation) during registration.</p>""",
+  <li>Access the <strong>Triage Queue</strong> and select the arriving patient.</li>
+  <li>Calibrate automated non-invasive blood pressure (NIBP) cuffs and pulse oximeter probes.</li>
+  <li>Enter measured vitals directly into the numeric entry fields. The HMIS automatically calculates the MEWS score and Body Mass Index (BMI).</li>
+  <li>Assign the Manchester / South African Triage category:
+    <ul>
+      <li><strong style="color: #dc2626;">Red (Resuscitation):</strong> Immediate physician response required.</li>
+      <li><strong style="color: #ea580c;">Orange (Very Urgent):</strong> Target review within 10 minutes.</li>
+      <li><strong style="color: #ca8a04;">Yellow (Urgent):</strong> Target review within 60 minutes.</li>
+      <li><strong style="color: #16a34a;">Green (Non-Urgent):</strong> Standard OPD queue.</li>
+    </ul>
+  </li>
+  <li>Click <strong>Save & Transfer to Consultation</strong>.</li>
+</ol>""",
     },
     {
-        "title": "SOP: Consultation Workflow",
+        "title": "SOP: Clinical Consultation & Electronic Prescribing",
         "slug": "sop-consultation-workflow",
         "category_slug": "clinical-modules",
-        "tags": ["consultation", "how-to"],
+        "tags": ["consultation", "how-to", "clinical"],
         "status": "published",
-        "views": 260,
-        "days_ago": 14,
-        "content": """<h2>Purpose</h2>
-<p>Standardizes how a clinician conducts and documents a consultation once a patient reaches the Consultation Room.</p>
+        "views": 380,
+        "days_ago": 18,
+        "content": """<h2>1. Clinical Objectives</h2>
+<p>Standardizes the physician and clinical officer workflow for outpatient consultations, clinical documentation, diagnostic workups, and electronic prescription (e-Rx) authoring.</p>
 
-<h2>Scope / Who</h2>
-<p>Doctors, clinical officers, and nurses conducting patient consultations.</p>
-
-<h2>Procedure</h2>
+<h2>2. Consultation Flow</h2>
 <ol>
-<li>Open the patient's record from the Consultation queue.</li>
-<li>Review any vitals already captured at Triage.</li>
-<li>Document presenting complaint, examination findings, and diagnosis.</li>
-<li>Where required, initiate orders directly from the consultation screen &mdash; lab orders, procedure orders, or a pharmacy prescription.</li>
-<li>Complete the consultation record to close out the visit or route the patient onward (e.g. to Lab, Pharmacy, or Admission).</li>
-</ol>
-
-<h2>Notes / Edge Cases</h2>
-<p>Consultation notes should be finalized before routing the patient onward &mdash; incomplete notes make it harder for downstream staff (lab, pharmacy) to understand the clinical context of an order.</p>""",
+  <li><strong>Patient File Retrieval:</strong> Select the assigned patient from your active <em>Consultation Room Queue</em>.</li>
+  <li><strong>History & Examination:</strong>
+    <ul>
+      <li>Document History of Presenting Illness (HPI), past medical/surgical history, and known drug allergies.</li>
+      <li>Review vital trends captured at triage.</li>
+      <li>Record physical examination findings by anatomical system.</li>
+    </ul>
+  </li>
+  <li><strong>Diagnostic Formulation:</strong> Select ICD-11 primary and secondary diagnoses using the integrated autocomplete search.</li>
+  <li><strong>Investigation Orders:</strong>
+    <ul>
+      <li><em>Lab Orders:</em> Select standardized test panels (e.g., Complete Blood Count, Renal Function Tests).</li>
+      <li><em>Radiology Orders:</em> Specify imaging modality (X-ray, Ultrasound, CT) and clinical indication.</li>
+    </ul>
+  </li>
+  <li><strong>Electronic Prescription (e-Rx):</strong>
+    <ul>
+      <li>Search active hospital formulary by generic international nonproprietary name (INN).</li>
+      <li>Specify dosage, route, frequency (e.g., TDS, BD), and duration in days.</li>
+      <li>Review automated allergy contraindication and drug-drug interaction alerts.</li>
+    </ul>
+  </li>
+  <li><strong>Disposition & Sign-Off:</strong> Select patient disposition (<em>Discharge with Medication</em>, <em>Direct Ward Admission</em>, or <em>Schedule Follow-Up</em>) and electronically sign the encounter.</li>
+</ol>""",
     },
     {
-        "title": "SOP: Lab Order Processing",
+        "title": "SOP: Laboratory Order Processing & Results Validation",
         "slug": "sop-lab-order-processing",
         "category_slug": "laboratory-workflows",
-        "tags": ["lab", "how-to"],
+        "tags": ["lab", "how-to", "diagnostics"],
         "status": "published",
-        "views": 178,
-        "days_ago": 12,
-        "content": """<h2>Purpose</h2>
-<p>Describes how lab staff process an order from request through result posting.</p>
+        "views": 290,
+        "days_ago": 16,
+        "content": """<h2>1. Purpose</h2>
+<p>Outlines the end-to-end lifecycle of diagnostic laboratory orders from phlebotomy and specimen accessioning to automated analyzer result verification and clinical sign-off.</p>
 
-<h2>Scope / Who</h2>
-<p>Doctors, clinical officers, nurses, and laboratory staff.</p>
-
-<h2>Procedure</h2>
+<h2>2. Laboratory Queue Lifecycle States</h2>
 <ol>
-<li>Open the <strong>Labs</strong> module from the main menu. Orders are organized into queue states: Awaiting Sampling, Processing, Awaiting Verification, Posted, Tests Ordered, Long Turnaround, and Referrals.</li>
-<li>The <strong>Awaiting Sampling</strong> tab is selected by default and lists patients with pending lab orders. Use the date filter to narrow the list to a specific range.</li>
-<li>Locate the patient (by name or search), and confirm the order status &mdash; for example, "Awaiting Payment" &mdash; along with the requested test and its priority level.</li>
-<li>Click <strong>View</strong> to open the order details, collect the sample, and move the order through Processing, Verification, and finally Posted once results are ready.</li>
+  <li><strong>Awaiting Sampling:</strong> Patient presents at lab reception. Verify patient identity via barcode wristband or OTP. Collect required specimen tubes (EDTA, Serum Gel, Citrate).</li>
+  <li><strong>Accessioning & Barcode Labeling:</strong> Affix thermal barcode labels matching the HMIS Lab Requisition Number to each specimen container.</li>
+  <li><strong>Processing:</strong> Specimen loaded into clinical chemistry/hematology analyzer or plated for microbiology culture.</li>
+  <li><strong>Awaiting Verification:</strong> Analyzer transmits raw quantitative values via HL7/LIS interface. Medical Laboratory Technologist audits values against reference intervals and Delta checks.</li>
+  <li><strong>Posted & Published:</strong> Results validated by the Senior Laboratory Technologist; immediately visible in the clinician's consultation portal.</li>
 </ol>
 
-<h2>Notes / Edge Cases</h2>
-<p>Orders flagged as "Long Turnaround" (e.g. send-out tests) follow the same queue states but on a longer timeline &mdash; don't treat a delay in this category as an error.</p>""",
+<blockquote>
+  <strong>🚨 Critical Value Notification:</strong> Any panic/critical result (e.g. Potassium &lt; 2.5 or &gt; 6.5 mmol/L, Platelets &lt; 20,000/µL) requires mandatory immediate telephone notification to the ordering clinician and documentation in the Critical Alert Log.
+</blockquote>""",
     },
     {
-        "title": "SOP: Pharmacy Dispensing",
+        "title": "SOP: Pharmacy Prescription Dispensing & Drug Safety",
         "slug": "sop-pharmacy-dispensing",
         "category_slug": "pharmacy-dispensing",
-        "tags": ["pharmacy", "how-to"],
+        "tags": ["pharmacy", "how-to", "safety"],
         "status": "published",
-        "views": 195,
-        "days_ago": 11,
-        "content": """<h2>Purpose</h2>
-<p>Defines the dispensation workflow for prescriptions issued during a consultation.</p>
+        "views": 275,
+        "days_ago": 15,
+        "content": """<h2>1. Purpose</h2>
+<p>Ensures adherence to the <strong>Five Rights of Medication Administration</strong> (Right Patient, Right Drug, Right Dose, Right Route, Right Time) and governs controlled drug inventory management.</p>
 
-<h2>Scope / Who</h2>
-<p>Doctors, clinical officers, nurses, and pharmacists.</p>
-
-<h2>Procedure</h2>
+<h2>2. Dispensing Protocol</h2>
 <ol>
-<li>Open the <strong>Pharmacy</strong> module to view the dispensing queue, listing patients awaiting dispensation. Use date filters or the search bar (by patient name or ticket number) to narrow the queue.</li>
-<li>Locate the patient &mdash; their request status will show as "Awaiting Dispensation," meaning the prescription is pending fulfillment.</li>
-<li>Click on the patient or ticket number to open and verify the full prescription details before dispensing.</li>
-<li>Confirm dispensation once medication has been provided, updating the patient's status in the queue.</li>
+  <li>Open the <strong>Pharmacy Dispensing Queue</strong>. Select the patient ticket number.</li>
+  <li><strong>Prescription Verification:</strong> Audit the electronic prescription for:
+    <ul>
+      <li>Appropriateness of dosing, renal dose adjustments, and treatment duration.</li>
+      <li>Known drug allergies or duplicate therapeutic regimens.</li>
+    </ul>
+  </li>
+  <li><strong>Stock Allocation:</strong> Verify batch number, manufacturer expiry date, and storage temperature requirements.</li>
+  <li><strong>Dispensation Confirmation:</strong> Scan the medication barcode to deduct inventory in real time and generate printed dosage instruction labels.</li>
+  <li><strong>Patient Counseling:</strong> Verbally explain medication timing, dietary precautions (e.g., take with meals), and common adverse effects.</li>
 </ol>
 
-<h2>Notes / Edge Cases</h2>
-<p>Always verify prescription details against the consultation notes before dispensing, particularly for high-risk medications.</p>""",
+<h2>3. Controlled Substances (Schedule II/III)</h2>
+<ul>
+  <li>Controlled narcotics (e.g. Morphine, Pethidine, Fentanyl) require a double digital signature from both the dispensing pharmacist and witnessing medical officer.</li>
+</ul>""",
     },
     {
-        "title": "SOP: Admission Process",
+        "title": "SOP: Inpatient Ward Admission & Bed Management",
         "slug": "sop-admission-process",
         "category_slug": "clinical-modules",
-        "tags": ["admission", "how-to"],
+        "tags": ["admission", "inpatient", "how-to"],
         "status": "published",
-        "views": 88,
-        "days_ago": 10,
-        "content": """<h2>Purpose</h2>
-<p>Describes the process for admitting a patient for inpatient or maternity care.</p>
+        "views": 160,
+        "days_ago": 14,
+        "content": """<h2>1. Purpose</h2>
+<p>Governs the admission, bed allocation, and inpatient nursing intake workflow for medical, surgical, pediatric, and maternity wards.</p>
 
-<h2>Scope / Who</h2>
-<p>Doctors, clinical officers, and nursing staff involved in inpatient admission.</p>
-
-<h2>Procedure</h2>
+<h2>2. Admission Procedure</h2>
 <ol>
-<li>From the patient's consultation record, initiate an admission when inpatient care is clinically indicated.</li>
-<li>Complete the admission form, capturing ward/bed assignment and admitting diagnosis.</li>
-<li>For maternity admissions, follow the maternity-specific admission fields (expected delivery date, gravida/para status where applicable).</li>
-<li>Confirm the admission to move the patient into the inpatient record system for ongoing care documentation.</li>
-</ol>
-
-<h2>Notes / Edge Cases</h2>
-<p>Bed/ward availability should be confirmed before completing the admission to avoid conflicting assignments.</p>""",
+  <li><strong>Initiation:</strong> The attending physician creates an <em>Admission Order</em> from the consultation record, specifying admitting diagnosis, care level (General, High Dependency, ICU), and dietary orders.</li>
+  <li><strong>Bed Management & Assignment:</strong>
+    <ul>
+      <li>The Bed Coordinator views real-time ward occupancy matrices in the HMIS Bed Manager.</li>
+      <li>Assign an active bed (e.g., <em>Female Medical Ward - Bed 14B</em>).</li>
+    </ul>
+  </li>
+  <li><strong>Nursing Intake & Handover:</strong>
+    <ul>
+      <li>Upon physical arrival to the ward, the admitting nurse executes the <em>Nursing Intake Assessment</em>.</li>
+      <li>Document baseline vitals, skin integrity assessment (Braden Scale), and fall risk score (Morse Fall Scale).</li>
+      <li>Activate the Inpatient Medication Administration Record (e-MAR).</li>
+    </ul>
+  </li>
+</ol>""",
     },
     {
-        "title": "SOP: Referral Workflow",
+        "title": "SOP: Inter-Facility & Specialist Referral Workflow",
         "slug": "sop-referral-workflow",
         "category_slug": "clinical-modules",
-        "tags": ["referral", "how-to"],
+        "tags": ["referral", "how-to", "records"],
         "status": "published",
-        "views": 112,
-        "days_ago": 9,
-        "content": """<h2>Purpose</h2>
-<p>Standardizes how a patient is referred to another facility or department for care not available on-site.</p>
+        "views": 195,
+        "days_ago": 12,
+        "content": """<h2>1. Purpose</h2>
+<p>Standardizes the clinical protocol for transferring patients requiring tertiary care, advanced surgical intervention, or specialized diagnostics not available at the primary facility.</p>
 
-<h2>Scope / Who</h2>
-<p>Doctors, clinical officers, nurses, and health records staff.</p>
-
-<h2>Procedure</h2>
+<h2>2. Referral Steps</h2>
 <ol>
-<li>From the patient's record, initiate a referral once the need is clinically confirmed.</li>
-<li>Specify the referral reason, the receiving facility or department, and any accompanying clinical notes.</li>
-<li>Confirm the referral to generate the referral record, which the patient or receiving facility can reference.</li>
-</ol>
-
-<h2>Notes / Edge Cases</h2>
-<p>A referral does not close the patient's local record &mdash; it should still be updated with outcome notes if the patient returns for follow-up.</p>
-
-<h2>Related Articles</h2>
-<p>SOP: Consultation Workflow, SOP: Lab Order Processing</p>""",
+  <li>Open the patient record and select <strong>Initiate Referral</strong>.</li>
+  <li>Select the receiving tertiary facility from the verified National Health Referral Directory.</li>
+  <li>Specify the primary clinical referral reason and attach recent laboratory investigations, imaging reports, and medication history.</li>
+  <li><strong>Communication & Dispatch:</strong> Contact the receiving facility's triage coordinator to confirm bed availability.</li>
+  <li>Generate the official <em>Standard Medical Referral Summary Document</em> with a unique tracking QR code.</li>
+</ol>""",
     },
     {
-        "title": "How to Record an ANC Visit",
+        "title": "Clinical Guide: Antenatal Care (ANC) Enrollment & Monitoring",
         "slug": "how-to-record-anc-visit",
         "category_slug": "antenatal-care",
-        "tags": ["anc", "how-to"],
+        "tags": ["anc", "maternal", "how-to"],
         "status": "published",
-        "views": 134,
-        "days_ago": 8,
-        "content": """<h2>Overview</h2>
-<p>Antenatal Care (ANC) visits are recorded to track a pregnancy through scheduled check-ins.</p>
+        "views": 230,
+        "days_ago": 10,
+        "content": """<h2>1. Clinical Overview</h2>
+<p>The Antenatal Care (ANC) module tracks maternal health, fetal well-being, and preventive interventions throughout pregnancy according to WHO positive pregnancy experience guidelines.</p>
 
-<h2>Prerequisites</h2>
-<ul>
-<li>Patient must be registered and have an active ANC record, or be newly enrolled into ANC at this visit</li>
-</ul>
-
-<h2>Steps</h2>
+<h2>2. Initial ANC Booking (1st Trimester / Visit 1)</h2>
 <ol>
-<li>Open the patient's record and select the ANC module.</li>
-<li>If this is the patient's first ANC visit, complete the initial enrollment fields (gestational age, expected delivery date, obstetric history).</li>
-<li>For follow-up visits, record the current visit's findings (vitals, fetal assessment, any flagged risks).</li>
-<li>Save the visit to update the patient's ANC visit history and schedule the next recommended visit if applicable.</li>
+  <li>Enroll the patient into the <strong>Maternal Health Registry</strong>.</li>
+  <li>Record obstetric history: Gravidity, Parity, Number of living children, Past Caesarean sections.</li>
+  <li>Calculate Estimated Date of Delivery (EDD) and Gestational Age based on Last Normal Menstrual Period (LNMP) or first-trimester ultrasound biometric dating.</li>
+  <li>Order mandatory baseline screening profile: Blood Group & Rhesus, Full Blood Count, Syphilis (VDRL), HIV Rapid Test, Hepatitis B, and Urinalysis.</li>
+  <li>Prescribe routine micronutrient supplementation: Ferrous Sulphate + Folic Acid (IFA).</li>
 </ol>
 
-<h2>Troubleshooting</h2>
-<p>If prior ANC history doesn't appear, confirm the patient's record wasn't duplicated during registration &mdash; search by ID number rather than name to avoid this.</p>""",
+<h2>3. Longitudinal Follow-Up Protocol</h2>
+<ul>
+  <li>Monitor blood pressure trends at every contact to screen for Pre-eclampsia.</li>
+  <li>Document symphysis-fundal height (SFH) and fetal heart rate (FHR) from 20 weeks gestation.</li>
+</ul>""",
     },
     {
-        "title": "How to Record an Immunization (EPI)",
+        "title": "Clinical Protocol: Expanded Programme on Immunization (EPI)",
         "slug": "how-to-record-epi-immunization",
         "category_slug": "immunization-epi",
-        "tags": ["epi", "how-to"],
+        "tags": ["epi", "vaccines", "how-to"],
         "status": "published",
-        "views": 96,
-        "days_ago": 7,
-        "content": """<h2>Overview</h2>
-<p>The Expanded Programme on Immunization (EPI) module is used to record vaccinations administered to a patient.</p>
+        "views": 185,
+        "days_ago": 8,
+        "content": """<h2>1. Overview</h2>
+<p>Standardizes the capture and scheduling of childhood and adult immunization schedules under the national Expanded Programme on Immunization (EPI).</p>
 
-<h2>Prerequisites</h2>
-<ul>
-<li>Patient must be registered in the system</li>
-</ul>
-
-<h2>Steps</h2>
+<h2>2. Vaccine Administration & HMIS Logging</h2>
 <ol>
-<li>Open the patient's record and select the EPI module.</li>
-<li>Select the vaccine administered and confirm the dose number in the schedule.</li>
-<li>Record the date administered and any batch/lot details required by facility policy.</li>
-<li>Save the entry to update the patient's immunization history and, where applicable, the schedule for their next due vaccine.</li>
-</ol>
-
-<h2>Troubleshooting</h2>
-<p>If a vaccine dose appears out of sequence, confirm the patient's prior doses were recorded correctly rather than skipped in the system.</p>""",
+  <li>Retrieve the child's electronic health record using their Child Welfare Clinic (CWC) number or National Birth Certificate number.</li>
+  <li>Verify vaccine eligibility against the automated chronological immunization schedule.</li>
+  <li>Record vaccination details:
+    <ul>
+      <li><strong>Vaccine:</strong> (e.g., BCG, OPV, Pentavalent, Rotavirus, Measles-Rubella).</li>
+      <li><strong>Dose Number:</strong> (e.g., Penta-1, Penta-2, Penta-3).</li>
+      <li><strong>Batch & Lot Number:</strong> Scanned directly from the vial for cold-chain traceability.</li>
+      <li><strong>Anatomical Site & Route:</strong> (e.g. Left upper arm, Intramuscular).</li>
+    </ul>
+  </li>
+  <li>Save the entry to generate the automatic schedule for the next due vaccine date and dispatch an SMS reminder to the parent/guardian.</li>
+</ol>""",
     },
     {
-        "title": "Resolving Database Connection Error 505",
+        "title": "Troubleshooting Guide: Resolving HMIS Gateway & Database Error 505",
         "slug": "resolving-database-connection-error-505",
         "category_slug": "troubleshooting",
-        "tags": ["error", "troubleshooting"],
+        "tags": ["error", "troubleshooting", "infrastructure"],
         "status": "published",
-        "views": 42,
-        "days_ago": 5,
-        "content": """<h2>Symptoms</h2>
-<p>Screen freeze on login or terminal error prompt stating: <code>Could not retrieve user roles - Timeout</code>.</p>
+        "views": 95,
+        "days_ago": 6,
+        "content": """<h2>1. Problem Symptoms</h2>
+<p>Users report screen freezing upon authentication, HTTP 500/505 server error responses, or terminal logs stating <code>SQLAlchemy ConnectionPoolTimeout: QueuePool limit of size 20 overflow 10 reached</code>.</p>
 
-<h2>Diagnostic Steps</h2>
+<h2>2. Diagnostic & Remediation Steps</h2>
 <ol>
-<li><strong>Check local ping:</strong> Open terminal and verify ping to server host: <code>ping database.local</code></li>
-<li><strong>Review Connection Pools:</strong> Ensure active connections do not exceed the pool limit.</li>
-<li><strong>Restart Service:</strong> Restart the local client gateway daemon: <code>sudo systemctl restart hmis-gateway</code></li>
-</ol>
-
-<h2>Escalation</h2>
-<p>If the error persists, verify whether a scheduled backup is saturating the switch bandwidth.</p>""",
+  <li><strong>Check Database Liveness:</strong>
+    <pre><code>pg_isready -h localhost -p 5432 -U postgres</code></pre>
+  </li>
+  <li><strong>Inspect Active Connection Counts:</strong>
+    <pre><code>SELECT count(*), state FROM pg_stat_activity GROUP BY state;</code></pre>
+  </li>
+  <li><strong>Restart the Gateway Daemon:</strong>
+    <pre><code>sudo systemctl restart hmis-backend</code></pre>
+  </li>
+  <li><strong>Verify Reverse Proxy Upstream Health:</strong>
+    <pre><code>curl -I http://localhost:8000/health</code></pre>
+  </li>
+</ol>""",
     },
     {
-        "title": "SOP: Administering Pediatric Doses",
+        "title": "SOP: Pediatric Weight-Based Drug Dosing & Verification",
         "slug": "sop-administering-pediatric-doses",
-        "category_slug": "clinical-modules",
-        "tags": ["pharmacy", "how-to"],
+        "category_slug": "pharmacy-dispensing",
+        "tags": ["pharmacy", "pediatrics", "safety"],
         "status": "under_review",
-        "views": 15,
-        "days_ago": 2,
-        "content": """<h2>Purpose</h2>
-<p>Clinical protocol for pediatric dosage verification and administration.</p>
+        "views": 45,
+        "days_ago": 3,
+        "content": """<h2>1. Clinical Safety Protocol</h2>
+<p>Pediatric drug dosing requires strict weight-based or Body Surface Area (BSA) verification to eliminate medication errors in neonates, infants, and young children.</p>
 
-<h2>Safety Requirements</h2>
+<h2>2. Mandatory Safety Checks</h2>
 <ul>
-<li>Always verify patient age and exact weight prior to dose calculation.</li>
-<li>Double-check pediatric calculations against the body surface area formula.</li>
-<li>Requires co-signature by a supervising clinical lead.</li>
+  <li>Always obtain a measured weight in kilograms (kg) on the same day of prescription — never use estimated weight.</li>
+  <li>Doses must be calculated using <code>mg/kg/dose</code> or <code>mg/kg/day</code> divided into specific dosing intervals.</li>
+  <li>Verify that calculated pediatric doses never exceed the standard recommended maximum single adult dose.</li>
+  <li>Requires independent double-check and co-signature by a supervising clinical pharmacist or pediatrician before dispensing.</li>
 </ul>""",
+    },
+    {
+        "title": "Emergency Clinical Protocol: Adult & Pediatric Resuscitation (Code Blue)",
+        "slug": "emergency-resuscitation-code-blue",
+        "category_slug": "clinical-modules",
+        "tags": ["emergency", "resuscitation", "protocols"],
+        "status": "draft",
+        "views": 10,
+        "days_ago": 1,
+        "content": """<h2>1. Purpose</h2>
+<p>Provides clear, rapid response protocols for managing cardiac and respiratory arrest in adult and pediatric patients in hospital inpatient wards and outpatient areas.</p>
+
+<h2>2. Immediate Action Sequence (BLS / ACLS)</h2>
+<ol>
+  <li><strong>Activate Code Blue:</strong> Press the emergency call button or dial the facility emergency speed-dial <code>#222</code>.</li>
+  <li><strong>Initiate High-Quality CPR:</strong>
+    <ul>
+      <li>Compress at 100 - 120 compressions/minute at a depth of 5 - 6 cm (adults).</li>
+      <li>Allow complete chest recoil between compressions.</li>
+      <li>Provide 30:2 compression-to-ventilation ratio until advanced airway is placed.</li>
+    </ul>
+  </li>
+  <li><strong>Defibrillator Attachment:</strong> Attach AED / manual defibrillator pads and analyze rhythm (Shockable: VF/pVT vs Non-Shockable: Asystole/PEA).</li>
+</ol>""",
     },
 ]
 
