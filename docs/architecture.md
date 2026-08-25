@@ -93,11 +93,12 @@ Access permissions are enforced strictly via hierarchical role ranks (`viewer: 1
 | **Search Knowledge Base** | ✅ | ✅ | ✅ | ❌ |
 | **Submit Article Star Ratings & Comments** | ✅ | ✅ | ✅ | ✅ |
 | **Query Grounded AI Decision Copilot** | ✅ | ✅ | ✅ | ✅ |
-| **Create & Edit SOP Drafts** | ❌ | ✅ | ✅ | ❌ |
-| **Submit SOP for Clinical Review** | ❌ | ✅ (Automatic) | ✅ | ❌ |
+| **Create & Author New Articles** | ❌ | ✅ | ❌ *(Reviewer Only)* | ❌ |
+| **Edit Drafts & SOP Content** | ❌ | ✅ | ❌ | ❌ |
+| **Submit SOP for Clinical Review** | ❌ | ✅ *(Automatic)* | ❌ | ❌ |
 | **Access Editorial Review Queue** | ❌ | ❌ | ✅ | ❌ |
 | **Approve & Publish SOPs** | ❌ | ❌ | ✅ | ❌ |
-| **Request Revisions / Reject with Feedback** | ❌ | ❌ | ✅ | ❌ |
+| **Request Revisions / Reject with Reason** | ❌ | ❌ | ✅ | ❌ |
 | **Archive / Delete Articles** | ❌ | ❌ | ✅ | ❌ |
 | **Triage Low-Rated SOP Queue** | ❌ | ✅ | ✅ | ❌ |
 | **Staff & User Account Management** | ❌ | ❌ | ✅ | ❌ |

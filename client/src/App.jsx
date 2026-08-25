@@ -31,8 +31,8 @@ function AppRoutes() {
         <Route path="/review" element={<ProtectedRoute requireRole="admin"><ReviewQueue /></ProtectedRoute>} />
         <Route path="/analytics" element={<ProtectedRoute requireRole="admin"><Analytics /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute requireRole="admin"><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/articles/new" element={<ProtectedRoute requireRole="editor"><ArticleEditor /></ProtectedRoute>} />
-        <Route path="/articles/:id/edit" element={<ProtectedRoute requireRole="editor"><ArticleEditor /></ProtectedRoute>} />
+        <Route path="/articles/new" element={<ProtectedRoute exactRole="editor"><ArticleEditor /></ProtectedRoute>} />
+        <Route path="/articles/:id/edit" element={<ProtectedRoute exactRole="editor"><ArticleEditor /></ProtectedRoute>} />
         <Route path="/articles/:id" element={<ProtectedRoute><ArticleDetail /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute requireRole="admin"><UserList /></ProtectedRoute>} />
         <Route path="/users/new" element={<ProtectedRoute requireRole="admin"><AddUser /></ProtectedRoute>} />

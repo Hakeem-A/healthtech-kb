@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getArticle, deleteArticle, updateArticle, listArticles } from '../api/articles';
+import { getArticle, deleteArticle, updateArticle, listArticles, approveArticle, rejectArticle } from '../api/articles';
 import { useAuth } from '../context/useAuth';
 import Layout from '../components/Layout';
 import Icon from '../components/icons';
@@ -48,9 +48,10 @@ export default function ArticleDetail() {
   const [ratingSummary, setRatingSummary] = useState(null);
   const [ratingBusy, setRatingBusy] = useState(false);
 
-  const canEdit = user.role === 'editor' || user.role === 'admin';
-  const canPublish = user.role === 'admin';
-  const canDelete = user.role === 'admin';
+  const canEdit = user && user.role === 'editor';
+  const canPublish = user && user.role === 'admin';
+  const canDelete = user && user.role === 'admin';
+  const canReview = user && user.role === 'admin' && article?.status === 'under_review';
 
   useEffect(() => {
     if (article?.status === 'published') {
@@ -118,6 +119,34 @@ export default function ArticleDetail() {
       navigate('/articles');
     } catch (err) {
       setActionError(err.message);
+      setBusy(false);
+    }
+  }
+
+  async function handleApprove() {
+    setBusy(true);
+    setActionError(null);
+    try {
+      const updated = await approveArticle(id);
+      setArticle(updated);
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleReject() {
+    const reasonPrompt = window.prompt('Please provide a clinical feedback / rejection reason:');
+    if (!reasonPrompt || !reasonPrompt.trim()) return;
+    setBusy(true);
+    setActionError(null);
+    try {
+      const updated = await rejectArticle(id, reasonPrompt.trim());
+      setArticle(updated);
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
       setBusy(false);
     }
   }
@@ -192,6 +221,19 @@ export default function ArticleDetail() {
             {actionError && (
               <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-2xl p-4 mb-6 font-medium">
                 {actionError}
+              </div>
+            )}
+
+            {/* Rejection Feedback Banner */}
+            {article.rejection_reason && (
+              <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200/80 flex items-start gap-3 text-rose-900">
+                <span className="text-lg leading-none mt-0.5">💬</span>
+                <div>
+                  <h4 className="font-bold text-sm">Reviewer Revision Feedback</h4>
+                  <p className="text-sm text-rose-700 mt-1">
+                    {article.rejection_reason}
+                  </p>
+                </div>
               </div>
             )}
 
@@ -307,16 +349,38 @@ export default function ArticleDetail() {
               />
 
               {/* Article Actions Bar */}
-              {canEdit && (
+              {(canEdit || canPublish || canDelete) && (
                 <div className="flex items-center gap-3 pt-8 mt-10 border-t border-slate-100 flex-wrap">
-                  <Link
-                    to={`/articles/${id}/edit`}
-                    className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition shadow-xs"
-                  >
-                    Edit Article
-                  </Link>
+                  {canEdit && (
+                    <Link
+                      to={`/articles/${id}/edit`}
+                      className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition shadow-xs"
+                    >
+                      <Icon name="clipboard" className="w-4 h-4" />
+                      Edit Article
+                    </Link>
+                  )}
 
-                  {canPublish && (
+                  {canReview && (
+                    <>
+                      <button
+                        onClick={handleApprove}
+                        disabled={busy}
+                        className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition shadow-xs disabled:opacity-50"
+                      >
+                        ✓ Approve & Publish
+                      </button>
+                      <button
+                        onClick={handleReject}
+                        disabled={busy}
+                        className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition shadow-xs disabled:opacity-50"
+                      >
+                        ✕ Reject with Reason
+                      </button>
+                    </>
+                  )}
+
+                  {canPublish && article.status !== 'under_review' && (
                     <button
                       onClick={handlePublishToggle}
                       disabled={busy}

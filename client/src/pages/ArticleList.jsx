@@ -59,7 +59,7 @@ export default function ArticleList() {
   const [filterText, setFilterText] = useState('');
 
   const { user } = useAuth();
-  const canCreate = user && (user.role === 'editor' || user.role === 'admin');
+  const canCreate = user && user.role === 'editor';
 
   useEffect(() => {
     setLoading(true);

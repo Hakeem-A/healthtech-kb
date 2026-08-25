@@ -98,7 +98,7 @@ class ArticleEndpointTests(unittest.TestCase):
         self.assertEqual(data["slug"], "patient-onboarding-guide")
         self.assertEqual(data["status"], "under_review")
 
-    def test_admin_can_create_article_with_custom_status(self):
+    def test_admin_cannot_create_article(self):
         res = self.client.post(
             "/api/v1/articles/",
             json={
@@ -109,9 +109,63 @@ class ArticleEndpointTests(unittest.TestCase):
             },
             headers={"Authorization": f"Bearer {self.admin_token}"},
         )
-        self.assertEqual(res.status_code, 201)
-        data = res.json()
-        self.assertEqual(data["status"], "draft")
+        self.assertEqual(res.status_code, 403)
+        self.assertIn("Admins cannot create articles", res.json()["detail"])
+
+    def test_admin_can_approve_reject_and_delete_article(self):
+        # 1. Editor creates article (under_review)
+        res_create = self.client.post(
+            "/api/v1/articles/",
+            json={
+                "title": "Reviewable Guide",
+                "content": "Reviewable content.",
+                "category_id": self.cat_id,
+            },
+            headers={"Authorization": f"Bearer {self.editor_token}"},
+        )
+        self.assertEqual(res_create.status_code, 201)
+        article_id = res_create.json()["id"]
+        self.assertEqual(res_create.json()["status"], "under_review")
+
+        # 2. Admin rejects with reason
+        res_reject = self.client.put(
+            f"/api/v1/articles/{article_id}/reject",
+            json={"reason": "Missing clinical protocol reference."},
+            headers={"Authorization": f"Bearer {self.admin_token}"},
+        )
+        self.assertEqual(res_reject.status_code, 200)
+        self.assertEqual(res_reject.json()["status"], "draft")
+        self.assertEqual(
+            res_reject.json()["rejection_reason"],
+            "Missing clinical protocol reference.",
+        )
+
+        # 3. Editor updates and resubmits (status -> under_review)
+        res_resubmit = self.client.put(
+            f"/api/v1/articles/{article_id}",
+            json={
+                "content": "Updated content with protocol reference.",
+                "status": "under_review",
+            },
+            headers={"Authorization": f"Bearer {self.editor_token}"},
+        )
+        self.assertEqual(res_resubmit.status_code, 200)
+        self.assertEqual(res_resubmit.json()["status"], "under_review")
+
+        # 4. Admin approves
+        res_approve = self.client.put(
+            f"/api/v1/articles/{article_id}/approve",
+            headers={"Authorization": f"Bearer {self.admin_token}"},
+        )
+        self.assertEqual(res_approve.status_code, 200)
+        self.assertEqual(res_approve.json()["status"], "published")
+
+        # 5. Admin deletes
+        res_del = self.client.delete(
+            f"/api/v1/articles/{article_id}",
+            headers={"Authorization": f"Bearer {self.admin_token}"},
+        )
+        self.assertEqual(res_del.status_code, 204)
 
     def test_viewer_cannot_create_article(self):
         res = self.client.post(
