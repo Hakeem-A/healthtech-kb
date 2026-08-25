@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import Icon from './icons';
@@ -6,9 +6,9 @@ import Icon from './icons';
 
 
 const ROLE_BADGE_STYLES = {
-  admin: 'bg-purple-100 text-purple-800 ring-1 ring-purple-200',
-  editor: 'bg-amber-100 text-amber-800 ring-1 ring-amber-200',
-  viewer: 'bg-blue-100 text-blue-800 ring-1 ring-blue-200',
+  admin: 'bg-purple-50 text-purple-700 ring-1 ring-purple-200/80',
+  editor: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/80',
+  viewer: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200/80',
 };
 
 function initialsFromEmail(email) {
@@ -17,16 +17,16 @@ function initialsFromEmail(email) {
 }
 
 function NavItem({ to, icon, label, active, title }) {
-  const base = 'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-lg transition-colors';
+  const base = 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all';
   const activeCls = active
-    ? 'bg-blue-50 text-blue-700 font-medium'
-    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900';
+    ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-100 shadow-2xs'
+    : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900';
   const inertCls = 'text-slate-400 cursor-not-allowed';
 
   const inner = (
     <>
-      <Icon name={icon} className="w-5 h-5 flex-shrink-0" />
-      <span>{label}</span>
+      <Icon name={icon} className={`w-4 h-4 flex-shrink-0 ${active ? 'text-blue-600' : 'text-slate-400'}`} />
+      <span className="truncate">{label}</span>
     </>
   );
 
@@ -49,11 +49,11 @@ function NavSection({ title, children }) {
   return (
     <div className="mb-6">
       {title && (
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2 px-3">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-3">
           {title}
         </p>
       )}
-      <nav className="flex flex-col gap-0.5">{children}</nav>
+      <nav className="flex flex-col gap-1">{children}</nav>
     </div>
   );
 }
@@ -65,11 +65,11 @@ function SidebarForRole({ role, pathname, search }) {
         <NavSection>
           <NavItem to="/articles" icon="articles" label="Articles" active={pathname === '/articles' && !search} />
         </NavSection>
-        <NavSection title="Admin">
-          <NavItem to="/review" icon="inbox" label="Review queue" active={pathname === '/review'} />
-          <NavItem to="/articles/low-rated" icon="alertTriangle" label="Low-rated" active={pathname === '/articles/low-rated'} />
+        <NavSection title="Administration">
+          <NavItem to="/review" icon="inbox" label="Review Queue" active={pathname === '/review'} />
+          <NavItem to="/articles/low-rated" icon="alertTriangle" label="Low-rated Articles" active={pathname === '/articles/low-rated'} />
           <NavItem to="/analytics" icon="chart" label="Analytics" active={pathname === '/analytics'} />
-          <NavItem to="/users" icon="users" label="Users & roles" active={pathname.startsWith('/users')} />
+          <NavItem to="/users" icon="users" label="Users & Roles" active={pathname.startsWith('/users')} />
           <NavItem to="/admin" icon="shield" label="Audit & Assistant Logs" active={pathname === '/admin'} />
         </NavSection>
       </>
@@ -78,7 +78,7 @@ function SidebarForRole({ role, pathname, search }) {
 
   if (role === 'editor') {
     return (
-      <NavSection title="My work">
+      <NavSection title="My Work">
         <NavItem
           to="/articles"
           icon="clipboard"
@@ -88,7 +88,7 @@ function SidebarForRole({ role, pathname, search }) {
         <NavItem
           to="/articles?status=under_review"
           icon="inbox"
-          label="In review"
+          label="In Review"
           active={search === '?status=under_review'}
         />
         <NavItem
@@ -109,11 +109,11 @@ function SidebarForRole({ role, pathname, search }) {
 
   // viewer
   return (
-    <NavSection title="Topics">
+    <NavSection title="Clinical Topics">
       <NavItem
         to="/articles"
         icon="home"
-        label="All articles"
+        label="All Articles"
         active={pathname === '/articles' && !search}
       />
       <NavItem
@@ -174,10 +174,22 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const searchInputRef = useRef(null);
 
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   if (!user) return children;
 
@@ -188,88 +200,113 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-200">
-      <header className="bg-slate-300 border-b border-slate-200 px-4 sm:px-6 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between sticky top-0 z-10">
+    <div className="min-h-screen bg-slate-50/70 text-slate-900 font-sans flex flex-col">
+      {/* Header */}
+      <header className="bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 sm:px-8 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
         <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="xl:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition"
+            className="xl:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition"
             aria-label="Open navigation menu"
           >
             <Icon name="menu" className="w-5 h-5" />
           </button>
 
-          <Link to="/articles" className="flex items-center gap-2 font-bold text-xl text-slate-900 flex-shrink-0">
-            <span className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm">
+          <Link to="/articles" className="flex items-center gap-2.5 font-bold text-xl text-slate-900 tracking-tight flex-shrink-0">
+            <span className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm font-extrabold shadow-xs">
               H
             </span>
-            HealthTech KB
+            <span>HealthTech <span className="text-blue-600">KB</span></span>
           </Link>
         </div>
 
-        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xl relative mx-auto w-full">
+        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-lg relative mx-6 hidden sm:block">
           <Icon
             name="search"
             className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"
           />
           <input
+            ref={searchInputRef}
             id="global-search"
             name="global-search"
             type="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search the knowledge base…"
+            placeholder="Search clinical protocols, SOPs, guidelines… (⌘K)"
             aria-label="Search the knowledge base"
-            className="w-full bg-slate-100 border border-transparent rounded-xl pl-10 pr-4 py-3 text-base text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-slate-100 transition-colors"
+            className="w-full bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 focus:border-blue-500 rounded-xl pl-10 pr-16 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
           />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none">
+            {searchInput ? (
+              <button
+                type="button"
+                onClick={() => setSearchInput('')}
+                className="pointer-events-auto text-slate-400 hover:text-slate-600 p-0.5"
+                aria-label="Clear search"
+              >
+                <Icon name="close" className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <kbd className="hidden lg:inline-flex text-[10px] font-semibold text-slate-400 bg-slate-200/80 px-1.5 py-0.5 rounded border border-slate-300">
+                ⌘K
+              </kbd>
+            )}
+          </div>
         </form>
 
-        <div className="flex items-center gap-4 flex-shrink-0">
+        <div className="flex items-center gap-3 flex-shrink-0">
           <span
-            className={`text-xs font-semibold px-3 py-1.5 rounded-full uppercase tracking-wide ${
+            className={`text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider ${
               ROLE_BADGE_STYLES[user.role] || 'bg-slate-100 text-slate-700'
             }`}
           >
             {user.role}
           </span>
-          <div className="w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center text-sm font-semibold">
+          <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xs font-bold tracking-wider shadow-xs">
             {initialsFromEmail(user.email)}
           </div>
           <button
             onClick={logout}
-            className="text-sm font-medium text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 rounded-lg px-3.5 py-2 transition-colors"
+            className="text-xs font-semibold text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 hover:bg-red-50/50 rounded-xl px-3 py-2 transition-colors"
           >
             Log out
           </button>
         </div>
       </header>
 
+      {/* Mobile Drawer */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-20 xl:hidden">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <aside className="relative z-10 w-72 h-full bg-slate-300 border-r border-slate-200 p-6 overflow-y-auto shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <div className="text-lg font-semibold text-slate-900">Menu</div>
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="text-slate-500 hover:text-slate-900 rounded-lg p-2"
-                aria-label="Close navigation menu"
-              >
-                ×
-              </button>
+        <div className="fixed inset-0 z-40 xl:hidden">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={() => setSidebarOpen(false)} />
+          <aside className="relative z-10 w-72 h-full bg-white border-r border-slate-200 p-6 overflow-y-auto shadow-2xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2 font-bold text-lg text-slate-900">
+                  <span className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-extrabold">H</span>
+                  Menu
+                </div>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="text-slate-400 hover:text-slate-700 rounded-lg p-1.5 hover:bg-slate-100 transition"
+                  aria-label="Close navigation menu"
+                >
+                  <Icon name="close" className="w-5 h-5" />
+                </button>
+              </div>
+              <SidebarForRole role={user.role} pathname={pathname} search={search} />
             </div>
-            <SidebarForRole role={user.role} pathname={pathname} search={search} />
           </aside>
         </div>
       )}
 
-      <div className="flex">
-        <aside className="hidden xl:block w-72 border-r border-slate-200 bg-slate-300 px-4 py-6 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
+      {/* Main Layout Area */}
+      <div className="flex flex-1">
+        <aside className="hidden xl:block w-72 border-r border-slate-200/90 bg-white px-4 py-6 sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto">
           <SidebarForRole role={user.role} pathname={pathname} search={search} />
         </aside>
 
-        <main className="flex-1 min-w-0 p-6 sm:p-8 lg:p-10">{children}</main>
+        <main className="flex-1 min-w-0">{children}</main>
       </div>
     </div>
   );

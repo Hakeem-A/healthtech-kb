@@ -24,6 +24,14 @@ function formatDate(iso) {
   });
 }
 
+function estimateReadingTime(html) {
+  if (!html) return '1 min read';
+  const text = html.replace(/<[^>]*>/g, ' ');
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  const minutes = Math.max(1, Math.ceil(words / 200));
+  return `${minutes} min read`;
+}
+
 export default function ArticleDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -35,6 +43,7 @@ export default function ArticleDetail() {
   const [error, setError] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const [ratingSummary, setRatingSummary] = useState(null);
   const [ratingBusy, setRatingBusy] = useState(false);
@@ -56,7 +65,7 @@ export default function ArticleDetail() {
       const summary = await getFeedbackSummary(id);
       setRatingSummary(summary);
     } catch (err) {
-      alert(err.message);
+      setActionError(err.message);
     } finally {
       setRatingBusy(false);
     }
@@ -101,7 +110,7 @@ export default function ArticleDetail() {
   }, [id]);
 
   async function handleDelete() {
-    if (!window.confirm('Delete this article? This cannot be undone.')) return;
+    if (!window.confirm('Are you sure you want to delete this article? This action cannot be undone.')) return;
     setBusy(true);
     setActionError(null);
     try {
@@ -127,10 +136,27 @@ export default function ArticleDetail() {
     }
   }
 
+  function handleCopyShare() {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  function handlePrint() {
+    window.print();
+  }
+
   if (loading) {
     return (
       <Layout>
-        <div className="p-10 text-lg text-slate-600 leading-relaxed">Loading…</div>
+        <div className="px-6 sm:px-10 py-10 max-w-[1600px] mx-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl p-10 max-w-4xl animate-pulse space-y-6">
+            <div className="h-4 bg-slate-200 rounded w-24" />
+            <div className="h-10 bg-slate-200 rounded-xl w-3/4" />
+            <div className="h-4 bg-slate-100 rounded w-1/3" />
+            <div className="h-64 bg-slate-50 rounded-2xl" />
+          </div>
+        </div>
       </Layout>
     );
   }
@@ -139,11 +165,11 @@ export default function ArticleDetail() {
     return (
       <Layout>
         <div className="max-w-3xl mx-auto px-8 py-10">
-          <div className="text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <div className="text-base text-red-700 bg-red-50 border border-red-200 rounded-2xl p-6 mb-6 font-medium">
             {error}
           </div>
-          <Link to="/articles" className="text-base text-blue-600 font-medium">
-            ← Back to articles
+          <Link to="/articles" className="text-base text-blue-600 font-bold hover:underline">
+            ← Back to all articles
           </Link>
         </div>
       </Layout>
@@ -152,130 +178,219 @@ export default function ArticleDetail() {
 
   return (
     <Layout>
-      <div className="px-6 py-10">
-        <div className="max-w-7xl mx-auto grid gap-10 xl:grid-cols-[1fr_320px]">
-            
-          {/* Main column */}
-          <div className="max-w-[850px] w-full">
+      <div className="px-6 sm:px-10 py-10 max-w-[1600px] mx-auto">
+        <div className="grid gap-10 xl:grid-cols-[1fr_340px]">
+          {/* Main article content column */}
+          <div className="w-full">
             <Link
               to="/articles"
-              className="text-base text-blue-600 font-medium mb-6 inline-block hover:text-blue-800"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-900 transition mb-6 no-print"
             >
               ← Back to articles
             </Link>
 
-            <div className="mb-8 border-b border-slate-200 pb-8">
-              <div className="flex items-center gap-3 mb-4 flex-wrap">
-                <span className={`text-sm font-semibold px-3 py-1 rounded-full ${STATUS_STYLES[article.status]}`}>
-                  {article.status}
-                </span>
+            {actionError && (
+              <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-2xl p-4 mb-6 font-medium">
+                {actionError}
               </div>
-              
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 mb-6 leading-[1.15]">
-                {article.title}
-              </h1>
+            )}
 
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-4 text-sm text-slate-600">
+            {/* Clinical Status Callout Banner */}
+            {article.status === 'under_review' && (
+              <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-start gap-3 text-amber-800">
+                <span className="text-lg leading-none mt-0.5">⚠️</span>
+                <div>
+                  <h4 className="font-bold text-sm">Under Clinical Review</h4>
+                  <p className="text-xs text-amber-700 mt-0.5">
+                    This procedure is currently pending review and validation by clinical leadership.
+                  </p>
+                </div>
+              </div>
+            )}
+            {article.status === 'draft' && (
+              <div className="mb-6 p-4 rounded-2xl bg-slate-100 border border-slate-200 flex items-start gap-3 text-slate-700">
+                <span className="text-lg leading-none mt-0.5">📝</span>
+                <div>
+                  <h4 className="font-bold text-sm">Draft SOP Document</h4>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    This article is in draft state and is not yet approved for operational clinical use.
+                  </p>
+                </div>
+              </div>
+            )}
+            {article.status === 'archived' && (
+              <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-rose-800">
+                <span className="text-lg leading-none mt-0.5">⛔</span>
+                <div>
+                  <h4 className="font-bold text-sm">Archived Clinical Procedure</h4>
+                  <p className="text-xs text-rose-700 mt-0.5">
+                    This procedure has been archived and superseded. Verify the latest active SOP.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <article className="bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-12 shadow-xs mb-8">
+              {/* Header Meta */}
+              <div className="border-b border-slate-100 pb-8 mb-8">
+                <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+                  <span
+                    className={`text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider ${
+                      STATUS_STYLES[article.status] || 'bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    {article.status ? article.status.replace('_', ' ') : 'Draft'}
+                  </span>
+
+                  <div className="flex items-center gap-2 no-print">
+                    <button
+                      onClick={handlePrint}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-xl transition-all shadow-2xs"
+                      title="Print Clinical SOP"
+                    >
+                      <span>🖨️</span>
+                      Print SOP
+                    </button>
+                    <button
+                      onClick={handleCopyShare}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-xl transition-all shadow-2xs"
+                      title="Copy Article URL"
+                    >
+                      <Icon name="clipboard" className="w-3.5 h-3.5" />
+                      {copied ? '✓ Link Copied!' : 'Share'}
+                    </button>
+                  </div>
+                </div>
+
+                <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-6 leading-tight">
+                  {article.title}
+                </h1>
+
+                <div className="flex items-center gap-4 text-xs font-medium text-slate-500 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center font-bold text-slate-700">
+                    <span className="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-[10px]">
                       U
-                    </div>
-                    <span>Author ID: {article.author_id || 'Unknown'}</span>
+                    </span>
+                    <span>Author #{article.author_id || '1'}</span>
                   </div>
                   <span>•</span>
                   <span>Updated {formatDate(article.updated_at)}</span>
                   <span>•</span>
-                  <span>{article.views || 0} views</span>
+                  <span className="font-semibold text-slate-600">
+                    ⏱ {estimateReadingTime(article.content)}
+                  </span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <Icon name="activity" className="w-3.5 h-3.5 text-slate-400" />
+                    {article.views || 0} views
+                  </span>
                 </div>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
-                    alert('Link copied to clipboard!');
-                  }}
-                  className="flex items-center gap-2 text-sm font-medium text-slate-600 bg-slate-200 hover:bg-slate-300 px-3 py-1.5 rounded-lg transition-colors"
-                  title="Copy Link"
-                >
-                  <Icon name="clipboard" className="w-4 h-4" />
-                  Share
-                </button>
+
+                {article.tags && article.tags.length > 0 && (
+                  <div className="flex gap-2 flex-wrap mt-6">
+                    {article.tags.map((t) => (
+                      <span
+                        key={t.id}
+                        className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-xl"
+                      >
+                        #{t.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {article.tags && article.tags.length > 0 && (
-                <div className="flex gap-2 flex-wrap mt-6">
-                  {article.tags.map(t => (
-                    <span key={t.id} className="text-xs font-semibold text-blue-700 bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-full">
-                      #{t.name}
-                    </span>
-                  ))}
+              {/* Rich HTML Content Body */}
+              <div
+                className="prose-content text-lg leading-relaxed text-slate-800"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }}
+              />
+
+              {/* Article Actions Bar */}
+              {canEdit && (
+                <div className="flex items-center gap-3 pt-8 mt-10 border-t border-slate-100 flex-wrap">
+                  <Link
+                    to={`/articles/${id}/edit`}
+                    className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition shadow-xs"
+                  >
+                    Edit Article
+                  </Link>
+
+                  {canPublish && (
+                    <button
+                      onClick={handlePublishToggle}
+                      disabled={busy}
+                      className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition shadow-xs disabled:opacity-50"
+                    >
+                      {article.status === 'published' ? 'Archive Article' : 'Publish Article'}
+                    </button>
+                  )}
+
+                  {canDelete && (
+                    <button
+                      onClick={handleDelete}
+                      disabled={busy}
+                      className="inline-flex items-center gap-2 text-rose-600 hover:bg-rose-50 border border-rose-200 font-bold text-sm px-5 py-2.5 rounded-xl transition disabled:opacity-50 ml-auto"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </div>
               )}
-            </div>
+            </article>
 
-            {/* ✅ FIXED: Rich HTML rendering */}
-            <div
-              className="bg-slate-100 border border-slate-200 rounded-xl p-8 shadow-md mb-6 prose-content text-lg"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }}
-            />
-
-            {canEdit && (
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <Link to={`/articles/${id}/edit`} className="inline-flex items-center justify-center bg-slate-800 text-white px-6 py-3 rounded-lg hover:bg-slate-900 transition">
-                  Edit
-                </Link>
- 
-                {canPublish && (
-                  <button onClick={handlePublishToggle} className="inline-flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
-                    {article.status === 'published' ? 'Archive' : 'Publish'}
-                  </button>
-                )}
- 
-                {canDelete && (
-                  <button onClick={handleDelete} className="inline-flex items-center justify-center bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">
-                    Delete
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* ✅ FIXED: Rating now inside main column */}
+            {/* Rating / Feedback Section */}
             {article.status === 'published' && (
-              <div className="bg-slate-100 border border-slate-200 rounded-xl p-6 shadow-md mt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Was this helpful?</p>
-                    {ratingSummary?.rating_count > 0 && (
-                      <p className="text-sm text-slate-500">
-                        {ratingSummary.average_rating} avg ({ratingSummary.rating_count})
-                      </p>
-                    )}
-                  </div>
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xs flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h4 className="font-bold text-slate-900 text-base">Was this clinical article helpful?</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {ratingSummary?.rating_count > 0
+                      ? `Average rating: ${ratingSummary.average_rating} ★ (${ratingSummary.rating_count} submissions)`
+                      : 'Be the first to rate this article.'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
                   <StarRating
                     value={ratingSummary?.my_rating || 0}
                     onRate={handleRate}
                     readOnly={ratingBusy}
                   />
+                  {ratingBusy && <span className="text-xs text-slate-400">Saving…</span>}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Sidebar */}
-          <aside className="xl:sticky xl:top-[96px] self-start space-y-6">
-            <div className="bg-slate-300 border border-slate-200 rounded-xl p-6 shadow-md">
-              <h2 className="font-semibold mb-4">Related articles</h2>
+          {/* Related Articles Column */}
+          <aside className="xl:sticky xl:top-[85px] self-start space-y-6">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs">
+              <h3 className="font-bold text-slate-900 text-base mb-4 flex items-center gap-2">
+                <Icon name="articles" className="w-4 h-4 text-blue-600" />
+                Related Clinical SOPs
+              </h3>
               {related.length > 0 ? (
-                related.map((r) => (
-                  <Link key={r.id} to={`/articles/${r.id}`} className="block text-blue-600 mb-2 hover:text-blue-800">
-                    {r.title}
-                  </Link>
-                ))
+                <div className="space-y-3">
+                  {related.map((r) => (
+                    <Link
+                      key={r.id}
+                      to={`/articles/${r.id}`}
+                      className="block p-3 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/40 transition group"
+                    >
+                      <h4 className="font-bold text-sm text-slate-800 group-hover:text-blue-600 transition-colors leading-snug">
+                        {r.title}
+                      </h4>
+                      <span className="text-xs text-slate-400 mt-1 block">
+                        {r.views || 0} views
+                      </span>
+                    </Link>
+                  ))}
+                </div>
               ) : (
-                <p className="text-sm text-slate-500">No related articles found.</p>
+                <p className="text-xs text-slate-400">No related articles found in this category.</p>
               )}
             </div>
           </aside>
-
         </div>
       </div>
     </Layout>

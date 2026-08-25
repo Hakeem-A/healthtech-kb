@@ -1,169 +1,155 @@
-# HealthTech Knowledge Base (HealthTech-KB)
+# HealthTech Knowledge Base (HealthTech KB)
 
-Welcome to the **HealthTech Knowledge Base** project. This repository contains the source code for a web application designed to manage knowledge/user data in a healthcare technology setting, featuring a React frontend and a FastAPI backend.
+[![Frontend](https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite%208-blue.svg)](client/)
+[![Backend](https://img.shields.io/badge/Backend-FastAPI%20%2B%20SQLAlchemy-green.svg)](server/)
+[![Database](https://img.shields.io/badge/Database-PostgreSQL%2016-blue.svg)](server/)
+[![Container](https://img.shields.io/badge/Container-Docker%20%2B%20Compose-2496ED.svg)](docker-compose.yml)
+
+**HealthTech Knowledge Base** is an enterprise-grade clinical knowledge management and decision support platform tailored for hospital networks, HMIS integrations, and clinical care teams. It combines structured Standard Operating Procedure (SOP) authoring, rigorous editorial review workflows, granular Role-Based Access Control (RBAC), and a grounded conversational AI assistant.
+
+---
+
+## 🏛 System Architecture
+
+```
+                                  ┌─────────────────────────────┐
+                                  │      Client Web / Mobile    │
+                                  │   (React 19 + Vite 8 + Nginx)│
+                                  └──────────────┬──────────────┘
+                                                 │
+                                                 │ HTTPS / REST API
+                                                 ▼
+                                  ┌─────────────────────────────┐
+                                  │    FastAPI Application Core │
+                                  │  (JWT Auth, RBAC, Limiter)  │
+                                  └──────┬───────────────┬──────┘
+                                         │               │
+                     ┌───────────────────┘               └───────────────────┐
+                     ▼                                                       ▼
+      ┌─────────────────────────────┐                         ┌─────────────────────────────┐
+      │     PostgreSQL Database     │                         │   Gemini / LLM Grounding    │
+      │  (Alembic Schema & Models)  │                         │   (SOP RAG Decision Copilot)│
+      └─────────────────────────────┘                         └─────────────────────────────┘
+```
+
+---
 
 ## 📁 Repository Structure
 
-The project is split into the following main directories:
-
-- **[client](file:///home/abdi/Desktop/healthtech-kb/client)**: React web application built with [Vite](https://vite.dev/) and styled using [Tailwind CSS v4](https://tailwindcss.com/).
-- **[server](file:///home/abdi/Desktop/healthtech-kb/server)**: FastAPI-powered backend API with PostgreSQL integration.
-- **[docs](file:///home/abdi/Desktop/healthtech-kb/docs)**: Repository documentation directory containing architecture guidelines ([architecture.md](file:///home/abdi/Desktop/healthtech-kb/docs/architecture.md)) and Entity Relationship Diagrams ([erd.md](file:///home/abdi/Desktop/healthtech-kb/docs/erd.md)).
-
----
-
-## 💻 Tech Stack
-
-### Frontend
-
-- **Framework**: React 19
-- **Build Tool**: Vite 8
-- **Styling**: Tailwind CSS v4
-- **Linting**: ESLint
-
-### Backend
-
-- **Framework**: FastAPI
-- **Web Server**: Uvicorn
-- **ORM**: SQLAlchemy
-- **Database**: PostgreSQL, with schema managed via **Alembic** migrations
-- **Database Driver**: psycopg2-binary
-- **Authentication & Security**: Passlib (Bcrypt) & Python-Jose, JWT with embedded role claim
-- **Authorization**: Role-based access control (admin / editor / viewer) with hierarchy-based permission checks
-- **Data Validation**: Pydantic v2
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js (v18+) and npm
-- Python (3.10+)
-- PostgreSQL (running locally or accessible remotely)
-
----
-
-### Backend Setup
-
-The backend entrypoint is [server/app/main.py](file:///home/abdi/Desktop/healthtech-kb/server/app/main.py), which implements JWT authentication, RBAC, and hooks into a PostgreSQL database defined in [server/app/db/session.py](file:///home/abdi/Desktop/healthtech-kb/server/app/db/session.py).
-
-#### Step-by-Step Installation:
-
-1. **Navigate to the server directory**:
-
-```bash
-   cd server
 ```
-
-2. **Set up a Virtual Environment**:
-
-```bash
-   python3 -m venv venv
-   source venv/bin/activate
-```
-
-3. **Install Dependencies**:
-
-```bash
-   pip install -r requirements.txt
-```
-
-4. **Database Configuration**:
-   Create a PostgreSQL database and user, then set the connection string in a `.env` file in `server/`:
-
-(No trailing comments on the same line as the value — `python-dotenv` only treats `#` as a comment starter when preceded by whitespace.)
-
-5. **Run Database Migrations**:
-   Schema is managed entirely through Alembic — there is no auto-create-on-startup behavior. Apply the latest schema before first run:
-
-```bash
-   alembic upgrade head
-```
-
-6. **Seed the Database** (optional, for local dev/demo data):
-
-```bash
-   python seed_db.py
-```
-
-This creates three test accounts (`admin@healthtech.com` / `editor@healthtech.com` / `viewer@healthtech.com`), sample categories, tags, and articles.
-
-7. **Run the API Server**:
-
-```bash
-   uvicorn app.main:app --reload --port 8000
-```
-
-8. **Interactive Documentation**:
-   Once started, visit:
-   - Swagger UI: `http://localhost:8000/docs`
-   - ReDoc: `http://localhost:8000/redoc`
-   - Health check: `http://localhost:8000/health`
-
----
-
-### Frontend Setup
-
-1. **Navigate to the client directory**:
-
-```bash
-   cd client
-```
-
-2. **Install Dependencies**:
-
-```bash
-   npm install
-```
-
-3. **Start the Development Server**:
-
-```bash
-   npm run dev
-```
-
-4. **Build for Production**:
-
-```bash
-   npm run build
+healthtech-kb/
+├── client/                     # React 19 Frontend Web Application
+│   ├── src/                    # Components, pages, context, and API clients
+│   ├── nginx.conf              # Production Nginx reverse-proxy & routing
+│   ├── Dockerfile              # Multi-stage production container build
+│   └── README.md               # Frontend architecture & guide
+├── server/                     # FastAPI Backend API Server
+│   ├── app/                    # API endpoints, models, schemas, and services
+│   ├── alembic/                # Database migrations
+│   ├── tests/                  # Automated unit test suite
+│   ├── seed_db.py              # Initial clinical seed data & demo users
+│   ├── Dockerfile              # Lightweight Python 3.12 container
+├── docs/                       # Architecture diagrams, ERD specs, & deployment manual
+│   ├── architecture.md         # System architecture & RBAC matrix
+│   ├── erd.md                  # Entity Relationship Diagram & schema models
+│   ├── deployment.md           # Dockerization & production deployment guide
+│   └── api-collection.json     # Postman/OpenAPI v2.0 endpoint collection
+├── docker-compose.yml          # Single-command full-stack container orchestration
+└── README.md                   # Project overview & quickstart guide
 ```
 
 ---
 
-## 🛠 Database Models & Endpoints
+## ⚡ Quickstart with Docker Compose (Recommended)
 
-### Models
+Run the entire application (PostgreSQL + FastAPI Backend + React/Nginx Frontend) in a single command:
 
-- **[User](file:///home/abdi/Desktop/healthtech-kb/server/app/models/user.py)**: Tracks user accounts (`full_name`, `email`, `role`), usage stats (`total_queries`), and verification status (`is_verified`). Roles: `admin`, `editor`, `viewer`.
-- **[Article](file:///home/abdi/Desktop/healthtech-kb/server/app/models/article.py)**: Knowledge base content with `status` (`draft`, `under_review`, `published`, `archived`), category, author, and many-to-many tags.
-- **[Category](file:///home/abdi/Desktop/healthtech-kb/server/app/models/category.py)**: Hierarchical (self-referencing) content categories.
-- **[Tag](file:///home/abdi/Desktop/healthtech-kb/server/app/models/tag.py)**: Many-to-many labels for articles.
-- **[AuditLog](file:///home/abdi/Desktop/healthtech-kb/server/app/models/audit_log.py)**: Records admin-sensitive actions (role changes, user/article deletes, publish/archive) with actor, action, target, and timestamp.
-- **[ChatLog / ChatMessage](file:///home/abdi/Desktop/healthtech-kb/server/app/models/chat.py)**: Persisted chatbot session history.
+```bash
+docker compose up --build
+```
 
-### API Endpoints
+- **Web Application**: [`http://localhost`](http://localhost) (or port `80`)
+- **Backend API**: [`http://localhost:8000`](http://localhost:8000)
+- **Interactive Swagger Docs**: [`http://localhost:8000/docs`](http://localhost:8000/docs)
 
-All routes are prefixed with `/api/v1`.
+### Pre-Seeded 1-Click Demo Accounts
 
-- **Authentication** (`/auth`):
-  - `POST /auth/login`: JWT login (form-encoded `username`/`password`); returns an access token with an embedded role claim.
+| Role | Email | Password | Permissions |
+| :--- | :--- | :--- | :--- |
+| **Admin** | `admin@healthtech.com` | `AdminPass123!` | Review queue, publish/archive, user management, audit logs, low-rated triage |
+| **Editor** | `editor@healthtech.com` | `EditorPass123!` | Create, edit, and submit clinical SOPs for editorial review |
+| **Viewer** | `viewer@healthtech.com` | `ViewerPass123!` | Search & read published SOPs, rate procedures, query AI assistant |
 
-- **User Management** (`/users`) — admin-only for list/update/delete:
-  - `GET /users/`: List all users.
-  - `PUT /users/{user_id}`: Update user details, including role (logged to the audit trail).
-  - `DELETE /users/{user_id}`: Remove a user (logged to the audit trail).
+---
 
-- **Articles** (`/articles`) — role-gated (editor+ to create/edit, admin-only to publish/archive/delete):
-  - `POST /articles/`: Create a new article (default status `draft`).
-  - `GET /articles/`: List articles — viewers see published only; editors/admins see all statuses.
-  - `GET /articles/{article_id}`: Retrieve a single article (same visibility rule as list).
-  - `PUT /articles/{article_id}`: Update title/content/category/tags/status. Publishing or archiving requires admin.
-  - `DELETE /articles/{article_id}`: Delete an article (admin-only, logged to the audit trail).
+## 💻 Local Development Setup (Without Docker)
 
-- **Chat** (`/chat`):
-  - `POST /chat/`: Submit a chat message.
-  - `GET /chat/history`: Retrieve chat history for the current session.
+### 1. Prerequisites
+- **Node.js**: v18+ and npm
+- **Python**: 3.10+
+- **PostgreSQL**: 14+ running locally
 
-- **Utility**:
-  - `GET /health`: Basic liveness check, returns `{"status": "ok"}`.
+### 2. Backend Setup
+```bash
+cd server
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Create .env file with your database connection
+echo 'DATABASE_URL=postgresql://postgres:postgres@localhost:5432/healthtech_kb' > .env
+echo 'SECRET_KEY=insecure-dev-secret-key-12345678' >> .env
+
+# Run database migrations and seed data
+alembic upgrade head
+python seed_db.py
+
+# Start API server
+uvicorn app.main:app --reload --port 8000
+```
+
+### 3. Frontend Setup
+```bash
+cd client
+npm install
+npm run dev
+```
+Open [`http://localhost:5173`](http://localhost:5173) in your browser.
+
+---
+
+## 🧪 Automated Testing
+
+Run the backend unit test suite:
+```bash
+cd server
+./venv/bin/python -m unittest discover tests
+```
+
+---
+
+## 🚀 Production Deployment Plan
+
+### Option 1: Docker Compose on VPS (AWS EC2 / DigitalOcean / Linode)
+1. Provision a Linux server with Docker and Docker Compose installed.
+2. Clone the repository and configure environment variables in `.env`.
+3. Run `docker compose up -d --build`.
+4. Point a domain (e.g. `kb.hospital.org`) and attach Let's Encrypt SSL via Certbot or Cloudflare.
+
+### Option 2: Managed Cloud Containers (Google Cloud Run / AWS ECS / Render)
+1. **Database**: Provision a managed PostgreSQL instance (e.g., Cloud SQL, AWS RDS, Supabase).
+2. **Backend**:
+   - Build and push `server/Dockerfile` to Google Artifact Registry / AWS ECR.
+   - Deploy as a stateless service with environment variables (`DATABASE_URL`, `SECRET_KEY`, `GEMINI_API_KEY`).
+3. **Frontend**:
+   - Build and deploy `client/Dockerfile` or host the static build (`npm run build`) on Vercel / Cloudflare Pages / AWS S3 + CloudFront with API rewrite rules pointing to the backend.
+
+---
+
+## 🛡 Security & Compliance
+
+- **Authentication**: JWT tokens with role claims, secure hashing via Bcrypt.
+- **Authorization**: Hierarchical role-based access checks (`admin` > `editor` > `viewer`).
+- **Audit Trails**: Non-repudiable audit logging for sensitive actions (user modifications, article publication, deletions).
+- **Rate Limiting**: Defenses against brute-force and request flooding via SlowAPI.
+- **XSS & Content Sanitization**: Rich HTML procedures sanitized with DOMPurify.

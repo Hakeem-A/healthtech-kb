@@ -66,68 +66,87 @@ export default function SearchResults() {
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto px-8 py-10">
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">
-          Search results
-        </h1>
-        <p className="text-lg text-slate-600 leading-relaxed mb-8">
-          {q ? (
-            <>
-              Showing results for <span className="font-medium text-slate-700">"{q}"</span>
-            </>
-          ) : (
-            'Enter a search term above'
-          )}
-        </p>
+      <div className="px-6 sm:px-10 py-10 max-w-[1400px] mx-auto">
+        <div className="mb-8">
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-1.5">
+            Search Results
+          </h1>
+          <p className="text-lg text-slate-600 leading-relaxed">
+            {q ? (
+              <>
+                Showing matching clinical articles for{' '}
+                <span className="font-bold text-slate-900 bg-blue-50 text-blue-700 px-3 py-1 rounded-xl border border-blue-200 inline-block ml-1">
+                  "{q}"
+                </span>
+              </>
+            ) : (
+              'Enter clinical keywords or article titles in the search bar above.'
+            )}
+          </p>
+        </div>
 
-        {loading && <p className="text-lg text-slate-600 leading-relaxed">Searching…</p>}
+        {loading && (
+          <div className="space-y-4 animate-pulse">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="bg-white border border-slate-200 rounded-2xl p-7 h-32" />
+            ))}
+          </div>
+        )}
 
         {error && (
-          <div className="text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-base text-red-700 bg-red-50 border border-red-200 rounded-2xl p-6 mb-8 font-medium">
             {error}
           </div>
         )}
 
         {!loading && !error && q.trim() && results.length === 0 && (
-          <div className="bg-slate-100 border border-dashed border-slate-300 rounded-xl p-8 text-center">
-            <p className="text-lg font-medium text-slate-700 mb-2">
-              No results for "{q}"
-            </p>
-            <p className="text-base text-slate-500 mb-4">
-              Try different or fewer keywords, or browse categories from the sidebar instead.
+          <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center shadow-xs">
+            <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4">
+              <Icon name="search" className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">No Matching Articles Found</h3>
+            <p className="text-base text-slate-500 max-w-md mx-auto mb-6">
+              We couldn't find any articles matching "{q}". Try searching for broader terms or browse clinical topics from the sidebar.
             </p>
             <Link
               to="/articles"
-              className="inline-flex items-center gap-1.5 text-blue-600 font-medium hover:text-blue-800"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white font-bold text-sm rounded-xl px-5 py-2.5 hover:bg-blue-700 transition"
             >
-              ← Browse all articles
+              ← Browse All Articles
             </Link>
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {results.map((r) => (
             <Link
               key={r.id}
               to={`/articles/${r.id}`}
-              className="group block bg-slate-100 border border-slate-200 rounded-xl p-6 shadow-md hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all duration-150"
+              className="group block bg-white border border-slate-200/90 rounded-2xl p-7 shadow-xs hover:shadow-md hover:border-blue-300 transition-all duration-150"
             >
               <div className="flex justify-between items-start gap-4 mb-2">
-                <h3 className="font-semibold text-lg text-slate-900 group-hover:text-blue-700 transition-colors">
+                <h3 className="font-bold text-xl text-slate-900 group-hover:text-blue-600 transition-colors">
                   {highlight(r.title, q)}
                 </h3>
                 <span
-                  className={`text-sm font-semibold px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${STATUS_STYLES[r.status] || 'bg-slate-100 text-slate-700'}`}
+                  className={`text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider whitespace-nowrap flex-shrink-0 ${
+                    STATUS_STYLES[r.status] || 'bg-slate-100 text-slate-700'
+                  }`}
                 >
-                  {r.status}
+                  {r.status ? r.status.replace('_', ' ') : 'Draft'}
                 </span>
               </div>
-              <p className="text-base text-slate-500 leading-relaxed">
+              <p className="text-base text-slate-600 leading-relaxed mb-4">
                 {highlight(r.snippet, q)}
               </p>
-              <div className="flex items-center gap-1.5 text-sm text-slate-400 mt-3">
-                <Icon name="activity" className="w-3.5 h-3.5" />
-                {r.views} views
+              <div className="flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-1.5 font-medium">
+                  <Icon name="activity" className="w-4 h-4 text-slate-400" />
+                  <span>{r.views || 0} views</span>
+                </div>
+                <span className="font-bold text-blue-600 group-hover:underline">
+                  Read Article →
+                </span>
               </div>
             </Link>
           ))}

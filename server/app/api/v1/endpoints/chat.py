@@ -1,4 +1,5 @@
 import json
+import time
 from typing import Optional
 from datetime import datetime, timezone
 
@@ -105,8 +106,10 @@ def send_chat_message(
 ):
     log = _find_or_create_log(db, caller, payload.session_id, payload.widget_source)
 
-    # Single reply path: compose_reply is the only entry point.
+    # Measure accurate end-to-end reply duration using monotonic clock
+    start_time = time.perf_counter()
     chat_reply = compose_reply(db, payload.message, payload.history or [])
+    duration_ms = max(1, int((time.perf_counter() - start_time) * 1000))
 
     if log is not None:
         sender_label = "hmis_widget" if caller.widget_host else "dashboard_user"
@@ -120,10 +123,6 @@ def send_chat_message(
         db.add(user_msg)
         db.commit()
 
-        user_msg_timestamp = user_msg.timestamp
-        if user_msg_timestamp.tzinfo is None:
-            user_msg_timestamp = user_msg_timestamp.replace(tzinfo=timezone.utc)
-
         bot_msg = ChatMessage(
             chat_log_id=log.id,
             sender="bot",
@@ -132,7 +131,7 @@ def send_chat_message(
             # Analytics fields
             status=chat_reply.status,
             confidence=chat_reply.confidence,
-            response_time_ms=int((datetime.now(timezone.utc) - user_msg_timestamp).total_seconds() * 1000),
+            response_time_ms=duration_ms,
             returned_article_ids=json.dumps([a.id for a in chat_reply.related_articles]),
         )
         db.add(bot_msg)

@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "HealthTech KB API (Widget + Web App)",
-    "description": "API contract for Web App and external HMIS chatbot widget.",
-    "version": "1.1.0"
+    "name": "HealthTech KB API (Clinical Decision Support + Admin + Widget)",
+    "description": "Comprehensive API collection for HealthTech Knowledge Base, Admin Dashboard, and Embedded HMIS Widget.",
+    "version": "2.0.0"
   },
   "auth": {
     "type": "bearer"
@@ -22,8 +22,8 @@
         "body": {
           "mode": "formdata",
           "formdata": [
-            { "key": "username", "value": "user@example.com" },
-            { "key": "password", "value": "changeme" }
+            { "key": "username", "value": "admin@healthtech.com" },
+            { "key": "password", "value": "AdminPass123!" }
           ]
         }
       },
@@ -36,36 +36,61 @@
       "request": {
         "method": "GET",
         "url": "{{baseUrl}}/users/",
-        "headers": {
-          "Authorization": "Bearer <jwt>"
-        }
+        "headers": { "Authorization": "Bearer <jwt>" }
       },
       "response": [
         {
           "code": 200,
           "body": [
-            { "id": 1, "full_name": "...", "email": "...", "role": "admin", "is_active": true, "is_verified": true }
+            { "id": 1, "full_name": "Dr. David Admin", "email": "admin@healthtech.com", "role": "admin", "is_active": true, "is_verified": true, "total_queries": 45 }
           ]
-        },
-        { "code": 403, "body": { "detail": "Requires at least 'admin' role. Your role is '<role>'." } }
+        }
       ]
     },
     {
-      "name": "Users - Update (role change)",
+      "name": "Users - Create",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/users/",
+        "headers": { "Authorization": "Bearer <jwt>" },
+        "body": {
+          "mode": "raw",
+          "raw": {
+            "full_name": "Clinical Officer Alex",
+            "email": "alex@healthtech.com",
+            "password": "AlexPass123!",
+            "role": "editor"
+          }
+        }
+      },
+      "response": [
+        { "code": 201, "body": { "id": 4, "full_name": "Clinical Officer Alex", "email": "alex@healthtech.com", "role": "editor", "is_active": true, "is_verified": true } }
+      ]
+    },
+    {
+      "name": "Users - Get Me",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/users/me",
+        "headers": { "Authorization": "Bearer <jwt>" }
+      },
+      "response": [
+        { "code": 200, "body": { "id": 1, "full_name": "Dr. David Admin", "email": "admin@healthtech.com", "role": "admin" } }
+      ]
+    },
+    {
+      "name": "Users - Update",
       "request": {
         "method": "PUT",
         "url": "{{baseUrl}}/users/{user_id}",
-        "headers": {
-          "Authorization": "Bearer <jwt>"
-        },
+        "headers": { "Authorization": "Bearer <jwt>" },
         "body": {
           "mode": "raw",
           "raw": { "role": "editor" }
         }
       },
       "response": [
-        { "code": 200, "body": { "id": 3, "full_name": "...", "email": "...", "role": "editor", "is_active": true, "is_verified": true } },
-        { "code": 403, "body": { "detail": "Only admins can change user roles" } }
+        { "code": 200, "body": { "id": 2, "role": "editor" } }
       ]
     },
     {
@@ -73,13 +98,21 @@
       "request": {
         "method": "DELETE",
         "url": "{{baseUrl}}/users/{user_id}",
-        "headers": {
-          "Authorization": "Bearer <jwt>"
-        }
+        "headers": { "Authorization": "Bearer <jwt>" }
       },
       "response": [
-        { "code": 204, "body": null },
-        { "code": 403, "body": { "detail": "Requires at least 'admin' role. Your role is '<role>'." } }
+        { "code": 204, "body": null }
+      ]
+    },
+    {
+      "name": "Articles - List",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/articles/?status=published",
+        "headers": { "Authorization": "Bearer <jwt>" }
+      },
+      "response": [
+        { "code": 200, "body": [{ "id": 1, "title": "SOP: Patient Registration", "status": "published", "views": 185 }] }
       ]
     },
     {
@@ -87,97 +120,31 @@
       "request": {
         "method": "POST",
         "url": "{{baseUrl}}/articles/",
-        "headers": {
-          "Authorization": "Bearer <jwt>"
-        },
+        "headers": { "Authorization": "Bearer <jwt>" },
         "body": {
           "mode": "raw",
           "raw": {
-            "title": "How to Reset a Patient Record",
-            "content": "...",
+            "title": "Emergency Airway Management Protocols",
+            "content": "<h2>Overview</h2><p>Clinical guidelines for emergency intubation...</p>",
             "category_id": 1,
-            "status": "draft",
+            "status": "under_review",
             "tag_ids": [1, 2]
           }
         }
       },
       "response": [
-        {
-          "code": 201,
-          "body": {
-            "id": 10,
-            "title": "How to Reset a Patient Record",
-            "slug": "how-to-reset-a-patient-record",
-            "content": "...",
-            "status": "draft",
-            "category_id": 1,
-            "author_id": 2,
-            "views": 0,
-            "tags": [],
-            "created_at": "2026-01-01T00:00:00Z",
-            "updated_at": "2026-01-01T00:00:00Z"
-          }
-        },
-        { "code": 403, "body": { "detail": "Requires at least 'editor' role. Your role is 'viewer'." } }
+        { "code": 201, "body": { "id": 15, "title": "Emergency Airway Management Protocols", "status": "under_review" } }
       ]
-    },
-    {
-      "name": "Articles - List",
-      "request": {
-        "method": "GET",
-        "url": "{{baseUrl}}/articles/",
-        "headers": {
-          "Authorization": "Bearer <jwt>"
-        }
-      },
-      "response": [
-        {
-          "code": 200,
-          "body": [
-            {
-              "id": 1,
-              "title": "...",
-              "slug": "...",
-              "status": "published",
-              "category_id": 1,
-              "author_id": 1,
-              "views": 124,
-              "created_at": "2026-01-01T00:00:00Z",
-              "updated_at": "2026-01-01T00:00:00Z"
-            }
-          ]
-        }
-      ],
-      "notes": "Viewers only receive articles with status=published. Editors and admins receive all statuses."
     },
     {
       "name": "Articles - Get Detail",
       "request": {
         "method": "GET",
         "url": "{{baseUrl}}/articles/{article_id}",
-        "headers": {
-          "Authorization": "Bearer <jwt>"
-        }
+        "headers": { "Authorization": "Bearer <jwt>" }
       },
       "response": [
-        {
-          "code": 200,
-          "body": {
-            "id": 1,
-            "title": "...",
-            "slug": "...",
-            "content": "...",
-            "status": "published",
-            "category_id": 1,
-            "author_id": 1,
-            "views": 124,
-            "tags": [{ "id": 1, "name": "patient", "slug": "patient" }],
-            "created_at": "2026-01-01T00:00:00Z",
-            "updated_at": "2026-01-01T00:00:00Z"
-          }
-        },
-        { "code": 403, "body": { "detail": "You do not have access to this article" } },
-        { "code": 404, "body": { "detail": "Article not found" } }
+        { "code": 200, "body": { "id": 1, "title": "SOP: Patient Registration", "content": "..." } }
       ]
     },
     {
@@ -185,99 +152,189 @@
       "request": {
         "method": "PUT",
         "url": "{{baseUrl}}/articles/{article_id}",
-        "headers": {
-          "Authorization": "Bearer <jwt>"
-        },
+        "headers": { "Authorization": "Bearer <jwt>" },
         "body": {
           "mode": "raw",
-          "raw": { "status": "published" }
+          "raw": {
+            "title": "Updated SOP: Patient Registration",
+            "status": "published"
+          }
         }
       },
       "response": [
-        {
-          "code": 200,
-          "body": {
-            "id": 1,
-            "title": "...",
-            "slug": "...",
-            "content": "...",
-            "status": "published",
-            "category_id": 1,
-            "author_id": 1,
-            "views": 124,
-            "tags": [],
-            "created_at": "2026-01-01T00:00:00Z",
-            "updated_at": "2026-01-01T00:00:00Z"
-          }
-        },
-        { "code": 403, "body": { "detail": "Only admins can publish or archive articles" } },
-        { "code": 404, "body": { "detail": "Article not found" } }
-      ],
-      "notes": "Editors and admins can edit title/content/category/tags. Only admins can change status to published or archived."
+        { "code": 200, "body": { "id": 1, "status": "published" } }
+      ]
     },
     {
       "name": "Articles - Delete",
       "request": {
         "method": "DELETE",
         "url": "{{baseUrl}}/articles/{article_id}",
-        "headers": {
-          "Authorization": "Bearer <jwt>"
-        }
+        "headers": { "Authorization": "Bearer <jwt>" }
       },
       "response": [
-        { "code": 204, "body": null },
-        { "code": 403, "body": { "detail": "Requires at least 'admin' role. Your role is '<role>'." } },
-        { "code": 404, "body": { "detail": "Article not found" } }
+        { "code": 204, "body": null }
       ]
     },
     {
-      "name": "Widget - Send Chat",
+      "name": "Articles - Search",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/articles/search?q=patient+registration",
+        "headers": { "Authorization": "Bearer <jwt>" }
+      },
+      "response": [
+        { "code": 200, "body": [{ "id": 1, "title": "SOP: Patient Registration", "snippet": "..." }] }
+      ]
+    },
+    {
+      "name": "Articles - Review Queue",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/articles/review-queue",
+        "headers": { "Authorization": "Bearer <jwt>" }
+      },
+      "response": [
+        { "code": 200, "body": [{ "id": 12, "title": "Pediatric Dosing", "status": "under_review", "days_waiting": 3 }] }
+      ]
+    },
+    {
+      "name": "Articles - Low Rated Triage",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/articles/low-rated?max_rating=3.5",
+        "headers": { "Authorization": "Bearer <jwt>" }
+      },
+      "response": [
+        { "code": 200, "body": [{ "id": 5, "title": "Resolving Error 505", "average_rating": 2.5, "rating_count": 4 }] }
+      ]
+    },
+    {
+      "name": "Articles - Submit Feedback",
       "request": {
         "method": "POST",
-        "url": "{{baseUrl}}/chat/",
-        "headers": {
-          "Authorization": "Bearer <jwt>"
-        },
+        "url": "{{baseUrl}}/articles/{article_id}/feedback",
+        "headers": { "Authorization": "Bearer <jwt>" },
         "body": {
           "mode": "raw",
           "raw": {
-            "session_id": "<widget-session-id>",
-            "message": "What articles cover diabetes?",
-            "widget_source": "hmis_widget"
+            "rating": 5,
+            "comment": "Extremely clear protocol!"
           }
         }
       },
       "response": [
-        { "code": 200, "body": { "session_id": "<widget-session-id>", "reply": "<bot reply>" } }
+        { "code": 201, "body": { "id": 1, "rating": 5 } }
       ]
     },
     {
-      "name": "Widget - Chat History",
+      "name": "Articles - Feedback Summary",
       "request": {
         "method": "GET",
-        "url": "{{baseUrl}}/chat/history?session_id=<widget-session-id>",
+        "url": "{{baseUrl}}/articles/{article_id}/feedback/summary",
+        "headers": { "Authorization": "Bearer <jwt>" }
+      },
+      "response": [
+        { "code": 200, "body": { "average_rating": 4.8, "rating_count": 12 } }
+      ]
+    },
+    {
+      "name": "Chat - Send Message",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/chat/",
         "headers": {
-          "Authorization": "Bearer <jwt>"
+          "Authorization": "Bearer <jwt>",
+          "X-API-Key": "demo-widget-api-key"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": {
+            "session_id": "session-12345",
+            "message": "How do I register a patient with OTP?",
+            "history": []
+          }
         }
       },
       "response": [
         {
           "code": 200,
           "body": {
-            "session_id": "<widget-session-id>",
-            "messages": [
-              { "id": 1, "sender": "hmis_widget", "message": "...", "timestamp": "2026-01-01T00:00:00Z" },
-              { "id": 2, "sender": "bot", "message": "...", "timestamp": "2026-01-01T00:00:01Z" }
-            ]
+            "session_id": "session-12345",
+            "message_id": 42,
+            "reply": "To register a patient with OTP, open the Registration module...",
+            "status": "confident",
+            "confidence": 0.95,
+            "primary_article": { "id": 1, "title": "SOP: Patient Registration" },
+            "related_articles": []
           }
         }
       ]
     },
     {
-      "name": "Health Check",
+      "name": "Chat - Get History",
       "request": {
         "method": "GET",
-        "url": "http://localhost:8000/health"
+        "url": "{{baseUrl}}/chat/history?session_id=session-12345",
+        "headers": { "Authorization": "Bearer <jwt>" }
+      },
+      "response": [
+        { "code": 200, "body": { "session_id": "session-12345", "messages": [] } }
+      ]
+    },
+    {
+      "name": "Chat - Rate Message Feedback",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/chat/messages/{message_id}/feedback",
+        "headers": { "Authorization": "Bearer <jwt>" },
+        "body": {
+          "mode": "raw",
+          "raw": { "helpful": true }
+        }
+      },
+      "response": [
+        { "code": 200, "body": { "id": 42, "helpful": true } }
+      ]
+    },
+    {
+      "name": "Admin - Audit Logs",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/audit-logs",
+        "headers": { "Authorization": "Bearer <jwt>" }
+      },
+      "response": [
+        { "code": 200, "body": [{ "id": 1, "action": "update_role", "target_type": "user", "target_id": 2 }] }
+      ]
+    },
+    {
+      "name": "Admin - Assistant Query Logs",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/assistant-logs",
+        "headers": { "Authorization": "Bearer <jwt>" }
+      },
+      "response": [
+        { "code": 200, "body": [{ "id": 1, "sender": "dashboard_user", "message": "...", "response_time_ms": 320, "helpful": true }] }
+      ]
+    },
+    {
+      "name": "Analytics - Summary KPIs",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/analytics/summary",
+        "headers": { "Authorization": "Bearer <jwt>" }
+      },
+      "response": [
+        { "code": 200, "body": { "total_articles": 12, "published_articles": 10, "top_viewed": [] } }
+      ]
+    },
+    {
+      "name": "Health Probe",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
       },
       "response": [
         { "code": 200, "body": { "status": "ok" } }

@@ -260,10 +260,10 @@ export default function ChatWidget() {
 
       <button
         onClick={() => setOpen((o) => !o)}
-        className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 shadow-lg hover:shadow-xl flex items-center justify-center text-2xl transition-all duration-200 hover:scale-105 active:scale-95"
+        className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl w-14 h-14 shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-blue-500/20"
         aria-label={open ? 'Close chat' : 'Open chat'}
       >
-        {open ? '×' : '💬'}
+        {open ? <Icon name="close" className="w-5 h-5" /> : <Icon name="bot" className="w-6 h-6" />}
       </button>
     </div>
   );

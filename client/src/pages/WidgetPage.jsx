@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { sendWidgetMessage, getWidgetHistory } from '../api/widgetClient';
+import Icon from '../components/icons';
 
 function getOrCreateSessionId() {
   const key = 'kb_widget_session_id';
@@ -54,8 +55,8 @@ export default function WidgetPage() {
 
   if (!apiKey) {
     return (
-      <div className="p-4 text-sm text-red-600">
-        Missing apiKey — embed this widget with ?apiKey=YOUR_KEY in the src URL.
+      <div className="p-6 text-sm font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded-2xl m-4">
+        Missing apiKey — embed this widget with <code className="font-bold">?apiKey=YOUR_KEY</code> in the URL.
       </div>
     );
   }
@@ -88,63 +89,79 @@ export default function WidgetPage() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4">
+    <div className="fixed bottom-6 right-6 font-sans z-50">
       {open && (
-        <div className="mb-4 w-80 bg-slate-100 border border-slate-200 rounded-lg shadow-xl flex flex-col overflow-hidden">
-          <div className="bg-blue-600 text-white px-4 py-3 flex justify-between items-center">
-            <span className="font-medium text-sm">KB Assistant</span>
+        <div className="mb-4 w-[370px] bg-white border border-slate-200 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div className="bg-slate-900 text-white px-5 py-4 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span className="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-extrabold">H</span>
+              <span className="font-bold text-sm">Clinical Assistant</span>
+            </div>
             <button
               onClick={() => setOpen(false)}
-              className="text-white/80 hover:text-white text-lg leading-none"
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
               aria-label="Close chat"
             >
-              ×
+              <Icon name="close" className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="flex-1 p-3 overflow-y-auto min-h-[300px] max-h-[380px] flex flex-col gap-2">
-            {loading && <p className="text-slate-500 text-sm">Loading history…</p>}
+          <div className="flex-1 p-4 overflow-y-auto min-h-[300px] max-h-[400px] flex flex-col gap-3 bg-slate-50/50">
+            {loading && <p className="text-slate-400 text-xs text-center py-4">Loading conversation history…</p>}
             {!loading && messages.length === 0 && (
-              <p className="text-slate-400 text-sm">Ask a question to get started.</p>
+              <div className="text-center py-10">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-2">
+                  <Icon name="bot" className="w-5 h-5" />
+                </div>
+                <p className="text-xs font-semibold text-slate-700 mb-1">How can I assist you today?</p>
+                <p className="text-[11px] text-slate-400">Ask about HMIS guidelines, dosages, or protocols.</p>
+              </div>
             )}
             {messages.map((m) => {
               const isUser = m.sender !== 'bot';
               return (
                 <div
                   key={m.id}
-                  className={`max-w-[85%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
-                    isUser ? 'bg-blue-600 text-white self-end' : 'bg-slate-100 text-slate-800 self-start'
+                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap shadow-2xs ${
+                    isUser
+                      ? 'bg-blue-600 text-white self-end rounded-br-xs font-medium'
+                      : 'bg-white border border-slate-200/80 text-slate-800 self-start rounded-bl-xs'
                   }`}
                 >
                   {m.message}
                 </div>
               );
             })}
+            {sending && (
+              <div className="bg-white border border-slate-200/80 text-slate-400 text-xs px-4 py-2 rounded-2xl self-start">
+                Thinking…
+              </div>
+            )}
             <div ref={bottomRef} />
           </div>
 
           {error && (
-            <div className="mx-3 mb-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded p-2">
+            <div className="mx-4 mb-3 text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-2.5">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSend} className="border-t border-slate-200 p-2 flex gap-2">
+          <form onSubmit={handleSend} className="border-t border-slate-100 p-3 bg-white flex gap-2">
             <input
               id="widget-message"
               name="widget-message"
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask a question…"
-              className="flex-1 border border-slate-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Ask a clinical question…"
+              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
             />
             <button
               type="submit"
               disabled={sending || !input.trim()}
-              className="bg-blue-600 text-white text-sm rounded px-3 py-1.5 hover:bg-blue-700 disabled:opacity-50"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl px-4 py-2 transition disabled:opacity-50"
             >
-              {sending ? '…' : 'Send'}
+              Send
             </button>
           </form>
         </div>
@@ -152,10 +169,10 @@ export default function WidgetPage() {
 
       <button
         onClick={() => setOpen((o) => !o)}
-        className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 shadow-lg flex items-center justify-center text-2xl"
+        className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl w-14 h-14 shadow-lg hover:shadow-xl flex items-center justify-center transition-all active:scale-95"
         aria-label={open ? 'Close chat' : 'Open chat'}
       >
-        {open ? '×' : '💬'}
+        {open ? <Icon name="close" className="w-5 h-5" /> : <Icon name="message" className="w-6 h-6" />}
       </button>
     </div>
   );

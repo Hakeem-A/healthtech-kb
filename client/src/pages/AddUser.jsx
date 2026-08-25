@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createUser } from '../api/users';
 import Layout from '../components/Layout';
+import Icon from '../components/icons';
 
 export default function AddUser() {
   const [fullName, setFullName] = useState('');
@@ -28,83 +29,110 @@ export default function AddUser() {
 
   return (
     <Layout>
-      <div className="max-w-lg mx-auto px-8 py-10">
-        <Link to="/users" className="text-base text-blue-600 font-medium mb-6 inline-block hover:text-blue-800">
-          ← Users
+      <div className="max-w-2xl mx-auto px-6 sm:px-10 py-10">
+        <Link
+          to="/users"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-900 transition mb-6"
+        >
+          ← Back to Users
         </Link>
 
-        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-8">Add User</h1>
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-2">
+          Add Staff Member
+        </h1>
+        <p className="text-slate-500 text-sm mb-8">
+          Create a new user profile with role-based access controls for the knowledge base.
+        </p>
 
-        <form onSubmit={handleSubmit} className="bg-slate-100 border border-slate-200 rounded-xl shadow-md p-8">
+        <form onSubmit={handleSubmit} className="bg-white border border-slate-200/90 rounded-3xl shadow-xs p-8 sm:p-10 space-y-6">
           {error && (
-            <div className="mb-6 text-base text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="text-sm font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded-2xl p-4">
               {error}
             </div>
           )}
 
-          <label htmlFor="full_name" className="block text-base font-medium text-slate-700 mb-2">
-            Full name
-          </label>
-          <input
-            id="full_name"
-            name="full_name"
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <div>
+            <label htmlFor="full_name" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              Full Name
+            </label>
+            <input
+              id="full_name"
+              name="full_name"
+              type="text"
+              placeholder="e.g. Dr. Sarah Jenkins"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+              className="w-full bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 focus:border-blue-500 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+            />
+          </div>
 
-          <label htmlFor="email" className="block text-base font-medium text-slate-700 mb-2">
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="off"
-            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <div>
+            <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              Email Address
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="sarah.jenkins@hospital.org"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="off"
+              className="w-full bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 focus:border-blue-500 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+            />
+          </div>
 
-          <label htmlFor="password" className="block text-base font-medium text-slate-700 mb-2">
-            Temporary password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="new-password"
-            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <div>
+            <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              Temporary Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="new-password"
+              className="w-full bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 focus:border-blue-500 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+            />
+          </div>
 
-          <label htmlFor="role" className="block text-base font-medium text-slate-700 mb-2">
-            Role
-          </label>
-          <select
-            id="role"
-            name="role"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="w-full border border-slate-300 rounded-lg px-4 py-3 text-lg mb-7 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="viewer">Viewer</option>
-            <option value="editor">Editor</option>
-            <option value="admin">Admin</option>
-          </select>
+          <div>
+            <label htmlFor="role" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              Access Role
+            </label>
+            <select
+              id="role"
+              name="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 focus:border-blue-500 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+            >
+              <option value="viewer">Viewer (Read-only access to published articles & chatbot)</option>
+              <option value="editor">Editor (Author & submit new SOPs for review)</option>
+              <option value="admin">Admin (Full access, approve review queue, manage users & audit)</option>
+            </select>
+          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white text-lg font-medium rounded-lg py-3.5 hover:bg-blue-700 transition disabled:opacity-50"
-          >
-            {loading ? 'Creating…' : 'Create user'}
-          </button>
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+            <Link
+              to="/users"
+              className="text-xs font-bold text-slate-600 hover:text-slate-900 px-5 py-3 rounded-xl hover:bg-slate-50 transition"
+            >
+              Cancel
+            </Link>
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl px-6 py-3 transition shadow-xs hover:shadow-md disabled:opacity-50"
+            >
+              {loading ? 'Creating Account…' : 'Create User'}
+            </button>
+          </div>
         </form>
       </div>
     </Layout>
