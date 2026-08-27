@@ -10,9 +10,12 @@ a reply that looks fabricated beyond the provided context) raises
 LLMUnavailable, which the caller (kb_search.compose_reply) catches
 and falls back to the deterministic template reply.
 """
+import logging
 import httpx
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -47,6 +50,11 @@ class LLMValidationError(Exception):
 
 
 FALLBACK_MODELS = [
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "meta-llama/llama-3.1-8b-instruct:free",
+    "google/gemini-2.0-flash-lite-preview-02-05:free",
+    "mistralai/mistral-small-24b-instruct-2501:free",
+    "qwen/qwen-2.5-72b-instruct:free",
     "nvidia/nemotron-3-nano-30b-a3b:free",
     "nvidia/nemotron-nano-9b-v2:free",
     "liquid/lfm-2.5-2.6b:free",
@@ -99,21 +107,40 @@ def generate_grounded_reply(question: str, articles: list[dict], history: list =
             )
             response.raise_for_status()
             data = response.json()
-            reply = data["choices"][0]["message"]["content"].strip()
+
+            choices = data.get("choices")
+            if not choices or not isinstance(choices, list) or len(choices) == 0:
+                raise LLMValidationError(f"Model {model_name} returned no choices in response.")
+
+            first_choice = choices[0]
+            msg_obj = first_choice.get("message") or {}
+            raw_content = msg_obj.get("content")
+
+            if raw_content is None:
+                raw_content = first_choice.get("text") or msg_obj.get("reasoning")
+
+            if raw_content is None or not isinstance(raw_content, str):
+                raise LLMValidationError(f"Model {model_name} returned null or non-string content.")
+
+            candidate_reply = raw_content.strip()
 
             # Deterministic guards
-            if not reply or len(reply) < 10:
+            if not candidate_reply or len(candidate_reply) < 10:
                 raise LLMValidationError("Reply is too short or empty.")
-            if "according to my knowledge" in reply.lower():
+            if "according to my knowledge" in candidate_reply.lower():
                 raise LLMValidationError("Reply contains forbidden phrases.")
 
+            reply = candidate_reply
             break
-        except (httpx.HTTPError, KeyError, IndexError, ValueError) as e:
+        except Exception as e:
             last_error = e
+            logger.warning(f"OpenRouter model '{model_name}' failed: {e}. Trying fallback...")
             continue
 
-    if not reply and last_error:
-        raise LLMUnavailable(str(last_error)) from last_error
+    if not reply:
+        if last_error:
+            raise LLMUnavailable(f"All LLM models failed. Last error: {last_error}") from last_error
+        raise LLMUnavailable("No reply generated from available LLM models.")
 
     # Heuristic grounding guard: a reply significantly longer than its
     # source material is a strong signal the model added content beyond

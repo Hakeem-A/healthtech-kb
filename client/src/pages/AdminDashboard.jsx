@@ -505,7 +505,7 @@ export default function AdminDashboard() {
                           <div className="font-bold text-slate-900 text-sm truncate max-w-[180px]">
                             {log.user_email || 'HMIS Guest'}
                           </div>
-                          <div className="text-xs text-slate-500 font-mono mt-0.5 truncate max-w-[180px]">
+                          <div className="text-xs text-slate-500 font-mono mt-0.5 truncate b">
                             {log.widget_source ? `Host: ${log.widget_source}` : `Session: ${log.session_id.slice(0, 12)}…`}
                           </div>
                         </td>

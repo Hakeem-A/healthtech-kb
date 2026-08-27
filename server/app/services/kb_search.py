@@ -248,6 +248,9 @@ def generate_answer(context: ChatContext) -> str:
     except (LLMUnavailable, LLMValidationError) as e:
         logger.warning(f"LLM generation failed, falling back to template: {e}")
         raise
+    except Exception as e:
+        logger.warning(f"Unexpected error in LLM generation, falling back: {e}")
+        raise LLMUnavailable(str(e)) from e
 
 
 def build_response(context: ChatContext, reply_text: str, status: str) -> ChatReply:
@@ -306,7 +309,8 @@ def compose_reply(
     try:
         llm_reply = generate_answer(context)
         return build_response(context, llm_reply, status="success")
-    except (LLMUnavailable, LLMValidationError):
+    except Exception as e:
+        logger.info(f"Using template fallback for chat reply due to: {e}")
         top_article, _ = context.retrieved_articles[0]
         snippet = extract_snippet(top_article.content, context.keywords)
         fallback_text = f"According to '{top_article.title}': {snippet}"

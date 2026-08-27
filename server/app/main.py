@@ -57,6 +57,7 @@ def root():
 
 
 @app.get("/health", tags=["Root"])
+@app.get(f"{API_PREFIX}/health", tags=["Root"])
 def health_check():
     try:
         with engine.connect() as conn:
