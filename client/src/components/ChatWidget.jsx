@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { sendChatMessage, getChatHistory, rateChatMessage } from '../api/chat';
 import { useAuth } from '../context/useAuth';
-import ChatHeader from './ChatHeader';
 import ChatHistory from './ChatHistory';
 import ChatInput from './ChatInput';
 import TypingIndicator from './TypingIndicator';
@@ -43,15 +42,16 @@ export default function ChatWidget() {
     localStorage.setItem('chat_expanded', isExpanded);
   }, [isExpanded]);
 
-  useEffect(() => {
+  const [prevUserEmail, setPrevUserEmail] = useState(user?.email);
+  if (prevUserEmail !== user?.email) {
+    setPrevUserEmail(user?.email);
     setSessionId(getOrCreateSessionId(user?.email));
     setMessages([]);
     setLoadedOnce(false);
-  }, [user?.email]);
+  }
 
   useEffect(() => {
     if (!open || loadedOnce || isGuest) {
-      if (isGuest) setLoadedOnce(true);
       return;
     }
     let ignore = false;

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createUser } from '../api/users';
 import Layout from '../components/Layout';
-import Icon from '../components/icons';
 
 export default function AddUser() {
   const [fullName, setFullName] = useState('');

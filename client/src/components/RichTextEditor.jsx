@@ -1,7 +1,7 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import Icon from './icons';
 
 function ToolbarButton({ onClick, active, disabled, children, label, title }) {
@@ -29,7 +29,7 @@ function Divider() {
   return <div className="w-px h-5 bg-slate-300 mx-1 self-center" />;
 }
 
-export default function RichTextEditor({ value, onChange, placeholder = "Start writing your article here..." }) {
+export default function RichTextEditor({ value, onChange }) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -65,13 +65,11 @@ export default function RichTextEditor({ value, onChange, placeholder = "Start w
     }
   }, [value, editor]);
 
-  const stats = useMemo(() => {
-    if (!editor) return { words: 0, chars: 0 };
-    const text = editor.getText();
-    const chars = text.length;
-    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-    return { words, chars };
-  }, [editor?.getText()]);
+  const text = editor ? editor.getText() : '';
+  const stats = {
+    chars: text.length,
+    words: text.trim() ? text.trim().split(/\s+/).length : 0,
+  };
 
   if (!editor) return null;
 

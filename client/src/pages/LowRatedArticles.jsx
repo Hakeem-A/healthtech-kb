@@ -34,10 +34,38 @@ export default function LowRatedArticles() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedArticleFeedback, setSelectedArticleFeedback] = useState(null);
 
+  const [prevRating, setPrevRating] = useState(maxRating);
+  if (prevRating !== maxRating) {
+    setPrevRating(maxRating);
+    setLoading(true);
+    setError(null);
+  }
+
+  useEffect(() => {
+    let ignore = false;
+    listLowRatedArticles(maxRating)
+      .then((data) => {
+        if (!ignore) {
+          setArticles(data || []);
+          setError(null);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!ignore) {
+          setError(err.message || 'Failed to load low-rated articles.');
+          setLoading(false);
+        }
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [maxRating]);
+
   const fetchLowRated = async (threshold) => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
       const data = await listLowRatedArticles(threshold);
       setArticles(data || []);
     } catch (err) {
@@ -46,10 +74,6 @@ export default function LowRatedArticles() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchLowRated(maxRating);
-  }, [maxRating]);
 
   const filteredArticles = useMemo(() => {
     if (!searchTerm) return articles;

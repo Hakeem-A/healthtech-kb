@@ -61,16 +61,33 @@ export default function ArticleList() {
   const { user } = useAuth();
   const canCreate = user && user.role === 'editor';
 
-  useEffect(() => {
+  const [prevFilter, setPrevFilter] = useState({ tagFilter, statusFilter });
+  if (prevFilter.tagFilter !== tagFilter || prevFilter.statusFilter !== statusFilter) {
+    setPrevFilter({ tagFilter, statusFilter });
     setLoading(true);
     setError(null);
+  }
+
+  useEffect(() => {
+    let ignore = false;
     listArticles({ tag: tagFilter, status: statusFilter })
-      .then(setArticles)
-      .catch((err) => {
-        console.error(err);
-        setError(err.message || 'Failed to load articles');
+      .then((data) => {
+        if (!ignore) {
+          setArticles(data || []);
+          setError(null);
+          setLoading(false);
+        }
       })
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        if (!ignore) {
+          console.error(err);
+          setError(err.message || 'Failed to load articles');
+          setLoading(false);
+        }
+      });
+    return () => {
+      ignore = true;
+    };
   }, [tagFilter, statusFilter]);
 
   const filteredArticles = useMemo(() => {

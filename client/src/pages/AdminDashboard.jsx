@@ -68,9 +68,9 @@ export default function AdminDashboard() {
   const [selectedAssistantLog, setSelectedAssistantLog] = useState(null);
 
   const fetchLogs = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
       const [auditData, assistantData] = await Promise.all([
         getAuditLogs(),
         getAssistantLogs(),
@@ -85,9 +85,32 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    if (user?.role === 'admin') {
-      fetchLogs();
-    }
+    if (user?.role !== 'admin') return;
+    let ignore = false;
+    (async () => {
+      try {
+        const [auditData, assistantData] = await Promise.all([
+          getAuditLogs(),
+          getAssistantLogs(),
+        ]);
+        if (!ignore) {
+          setAuditLogs(auditData || []);
+          setAssistantLogs(assistantData || []);
+          setError(null);
+        }
+      } catch (err) {
+        if (!ignore) {
+          setError(err.message || 'Failed to load logs. Please try again later.');
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    })();
+    return () => {
+      ignore = true;
+    };
   }, [user]);
 
   // Derived filtered logs
