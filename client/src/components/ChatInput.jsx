@@ -1,32 +1,89 @@
 
 
-export default function ChatInput({ input, setInput, handleSend, sending }) {
+import { useRef, useEffect } from 'react';
+import Icon from './icons';
+
+export default function ChatInput({ input, setInput, handleSend, sending, inputRef }) {
+  const localRef = useRef(null);
+  const activeRef = inputRef || localRef;
+
+  // Auto-resize the textarea height based on content
+  useEffect(() => {
+    if (activeRef.current) {
+      activeRef.current.style.height = 'auto';
+      activeRef.current.style.height = `${Math.min(activeRef.current.scrollHeight, 120)}px`;
+    }
+  }, [input, activeRef]);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (input.trim() && !sending) {
+        handleSend(e);
+      }
+    }
+  };
+
+  const handleClear = () => {
+    setInput('');
+    if (activeRef.current) {
+      activeRef.current.focus();
+    }
+  };
+
   return (
-    <form onSubmit={handleSend} className="p-4 border-t border-slate-200 flex items-center gap-4 bg-white flex-shrink-0 mt-auto">
-      <input
-        id="chat-message"
-        name="chat-message"
-        type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Ask a question…"
-        className="flex-1 border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <button
-        type="submit"
-        disabled={sending || !input.trim()}
-        className="bg-blue-600 text-white rounded-lg p-2.5 hover:bg-blue-700 disabled:opacity-50"
-        aria-label="Send message"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="w-5 h-5"
+    <form
+      onSubmit={handleSend}
+      className="p-3 border-t border-slate-200/90 bg-slate-50/50 flex-shrink-0 mt-auto"
+    >
+      <div className="relative flex items-end gap-2 bg-white border border-slate-300 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 rounded-2xl p-1.5 transition-all shadow-2xs">
+        <textarea
+          ref={activeRef}
+          id="chat-message"
+          name="chat-message"
+          rows={1}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask a question… (Enter to send, Shift+Enter for new line)"
+          disabled={sending}
+          className="flex-1 bg-transparent px-3 py-1.5 text-sm text-slate-800 placeholder-slate-400 resize-none focus:outline-none max-h-32 min-h-[38px] leading-relaxed"
+          aria-label="Chat question"
+        />
+
+        {/* Clear input button */}
+        {input.trim().length > 0 && !sending && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors self-center mb-0.5"
+            title="Clear text"
+            aria-label="Clear input text"
+          >
+            <Icon name="close" className="w-3.5 h-3.5" />
+          </button>
+        )}
+
+        {/* Send Button */}
+        <button
+          type="submit"
+          disabled={sending || !input.trim()}
+          className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl p-2.5 flex items-center justify-center transition-all duration-150 shadow-xs hover:shadow-sm disabled:cursor-not-allowed flex-shrink-0 mb-0.5"
+          aria-label="Send message"
+          title="Send message (Enter)"
         >
-          <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-        </svg>
-      </button>
+          {sending ? (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+          ) : (
+            <Icon name="send" className="w-4 h-4" />
+          )}
+        </button>
+      </div>
+
+      <div className="flex items-center justify-between px-2 pt-1.5 text-[10px] text-slate-400">
+        <span>Grounded in verified clinical & admin articles</span>
+        <span className="hidden sm:inline">Press Enter ↵ to send</span>
+      </div>
     </form>
   );
 }
